@@ -37,7 +37,8 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
                         $scope.fadeClass = '';
                         $http.get(`/output/${response.data.uuid}`)
                             .then(function(outputResponse) {
-                                $scope.resultsData = $sce.trustAsHtml(outputResponse.data.output);
+                                $scope.resultsData = outputResponse.data;
+                                $scope.buttonText = 'Build with AI';
                             });
                     }
                 }, 1000);

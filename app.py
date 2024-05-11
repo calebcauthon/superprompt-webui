@@ -3,6 +3,8 @@ from flask import Flask, render_template, jsonify, request
 from libs.db_models import db, Submission, OutputDocument
 from datetime import datetime
 import hashlib
+import requests
+import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your-database.db'
@@ -44,7 +46,7 @@ def output_document(uuid):
     if submission:
         output_document = OutputDocument.query.filter_by(submission_id=submission.id).first()
         if output_document:
-            return jsonify(output=output_document.output)
+            return output_document.output
     else:
         return f"Bad UUID: {uuid}", 404
 
@@ -56,7 +58,7 @@ def build():
     description, must_haves, supporting_text, user_id = extract_data(data)
     uuid = generate_uuid(description, must_haves, supporting_text, user_id)
     submission = create_submission(description, must_haves, supporting_text, user_id, uuid)
-    create_output_document(submission.id)
+    create_output_document(submission.id, description, must_haves)
     return jsonify({"uuid": uuid}), 200
 
 def extract_data(data):
@@ -83,30 +85,21 @@ def create_submission(description, must_haves, supporting_text, user_id, uuid):
     db.session.commit()
     return submission
 
-def create_output_document(submission_id):
+def create_output_document(submission_id, prompt, criteria):
+    def fetch_generated_output():
+        url = f"https://calebcauthon--example-get-started-generate-document-dev.modal.run?prompt={prompt}&criteria={criteria}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return "Failed to fetch generated output"
+
+    generated_output = fetch_generated_output()
     output_document = OutputDocument(
         submission_id=submission_id,
-        output="""
-        <table style='width:100%; border: 1px solid black;'>
-            <tr>
-                <th style='font-size: 18px; border-bottom: 1px solid black;'>Document Overview</th>
-            </tr>
-            <tr>
-                <td style='font-size: 16px;'>This is a placeholder output for the document.</td>
-            </tr>
-            <tr>
-                <th style='font-size: 14px; border-bottom: 1px solid black;'>Details</th>
-            </tr>
-            <tr>
-                <td>Additional row 1.</td>
-            </tr>
-            <tr>
-                <td>Additional row 2.</td>
-            </tr>
-        </table>
-        <br>
-        """
+        output=json.dumps(generated_output)
     )
+
     db.session.add(output_document)
     db.session.commit()
 
