@@ -86,7 +86,26 @@ def create_submission(description, must_haves, supporting_text, user_id, uuid):
 def create_output_document(submission_id):
     output_document = OutputDocument(
         submission_id=submission_id,
-        output="<table><tr><td>This is a placeholder output for the document.</td></tr><tr><td>Additional row 1.</td></tr><tr><td>Additional row 2.</td></tr></table>"
+        output="""
+        <table style='width:100%; border: 1px solid black;'>
+            <tr>
+                <th style='font-size: 18px; border-bottom: 1px solid black;'>Document Overview</th>
+            </tr>
+            <tr>
+                <td style='font-size: 16px;'>This is a placeholder output for the document.</td>
+            </tr>
+            <tr>
+                <th style='font-size: 14px; border-bottom: 1px solid black;'>Details</th>
+            </tr>
+            <tr>
+                <td>Additional row 1.</td>
+            </tr>
+            <tr>
+                <td>Additional row 2.</td>
+            </tr>
+        </table>
+        <br>
+        """
     )
     db.session.add(output_document)
     db.session.commit()
