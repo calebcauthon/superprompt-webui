@@ -16,7 +16,8 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
         isBlinking: false,
         formData: {},
         title: 'Input',
-        id: 'single'
+        id: 'single',
+        resultsData: null
     };
 
     $scope.inputTabs = [
@@ -60,10 +61,12 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
     $scope.submitForm = function(tab) {
         tab.buttonText = 'Generating ⏳';
         tab.isBlinking = true;
+        let otherOutputs = $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData }));
         $http.post('/build', {
             description_input: tab.formData.aiInput,
             must_haves_input: tab.formData.mustHaves,
             supporting_text_input: tab.formData.supportingText,
+            other_outputs: otherOutputs,
             user_id: 1 // Assuming a static user ID for demonstration
         })
             .then(function(response) {
@@ -73,19 +76,18 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
                 tab.isBlinking = false; 
                 var interval = $interval(function() {
                     countdown--;
-                    tab.buttonText = 'Redirecting to results in ' + countdown + '...';
+                    tab.buttonText = 'Displaying results in ' + countdown + '...';
                     if (countdown === 1) {
                         $scope.fadeClass = 'fade';
                     }
                     if (countdown === 0) {
                         $interval.cancel(interval);
-                        $scope.activeTab = 'multiple';
-                        $scope.fadeClass = '';
                         $http.get(`/output/${response.data.uuid}`)
                             .then(function(outputResponse) {
-                                $scope.resultsData = outputResponse.data;
+                                tab.resultsData = outputResponse.data;
                                 tab.buttonText = 'Build with AI';
                                 tab.isBlinking = false;
+                                $scope.fadeClass = '';
                             });
                     }
                 }, 1000);

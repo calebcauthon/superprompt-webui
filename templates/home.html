@@ -81,24 +81,21 @@
                 </div>
                 <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': tab.isBlinking}">{{ tab.buttonText }}</button>
             </form>
-        </div>
-        <div ng-show="activeTab === 'multiple'" ng-class="['fadeClass', 'results-tab', 'results-area']">
-            <div class="results-display">
-
-                <span ng-if="resultsData.success_result" style="font-family: 'Arial', sans-serif; color: #27ae60;">Success! 🎉</span>
-                <span ng-if="!resultsData.success_result" style="font-family: 'Arial', sans-serif; color: #c0392b;">Failure. 😞</span>
+            <div ng-if="tab.resultsData" class="results-display">
+                <span ng-if="tab.resultsData.success_result" style="font-family: 'Arial', sans-serif; color: #27ae60;">Success! 🎉</span>
+                <span ng-if="!tab.resultsData.success_result" style="font-family: 'Arial', sans-serif; color: #c0392b;">Failure. 😞</span>
                 <h2 style="font-family: 'Arial', sans-serif; color: #2c3e50;">Results 📄</h2>
                 <p style="font-family: 'Arial', sans-serif; font-size: 1.2em; padding: 10px; background-color: #f9f9f9; border-radius: 8px;">
                     <strong>Final Output:</strong>
-                    <span ng-bind-html="resultsData.result"></span>
+                    <span ng-bind-html="tab.resultsData.result"></span>
                 </p>
                 <p style="font-family: 'Arial', sans-serif; font-size: 1.2em;">
-                    <strong>Iterations:</strong> {{ resultsData.iterations }} 🔄
+                    <strong>Iterations:</strong> {{ tab.resultsData.iterations }} 🔄
                 </p>
                 <div>
                     <strong>Prompts Used:</strong>
                     <ul style="font-family: 'Arial', sans-serif; font-size: 1.2em; list-style-type: circle; padding-left: 20px;">
-                        <li ng-repeat="prompt in resultsData.all_prompts track by $index">{{ prompt }}</li>
+                        <li ng-repeat="prompt in tab.resultsData.all_prompts track by $index">{{ prompt }}</li>
                     </ul>
                 </div>
             </div>

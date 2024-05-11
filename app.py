@@ -55,10 +55,10 @@ def output_document(uuid):
 @app.route('/build', methods=['POST'])
 def build():
     data = request.json
-    description, must_haves, supporting_text, user_id = extract_data(data)
+    description, must_haves, supporting_text, user_id, other_outputs = extract_data(data)
     uuid = generate_uuid(description, must_haves, supporting_text, user_id)
     submission = create_submission(description, must_haves, supporting_text, user_id, uuid)
-    create_output_document(submission.id, description, must_haves)
+    create_output_document(submission.id, description, must_haves, other_outputs)
     return jsonify({"uuid": uuid}), 200
 
 def extract_data(data):
@@ -66,7 +66,8 @@ def extract_data(data):
     must_haves = data.get('must_haves_input')
     supporting_text = data.get('supporting_text_input')
     user_id = data.get('user_id')
-    return description, must_haves, supporting_text, user_id
+    other_outputs = data.get('other_outputs')
+    return description, must_haves, supporting_text, user_id, other_outputs
 
 def generate_uuid(description, must_haves, supporting_text, user_id):
     unique_string = f"{description}{must_haves}{supporting_text}{user_id}{datetime.utcnow()}"
@@ -85,10 +86,16 @@ def create_submission(description, must_haves, supporting_text, user_id, uuid):
     db.session.commit()
     return submission
 
-def create_output_document(submission_id, prompt, criteria):
+def create_output_document(submission_id, prompt, criteria, other_outputs):
     def fetch_generated_output():
-        url = f"https://calebcauthon--example-get-started-generate-document-dev.modal.run?prompt={prompt}&criteria={criteria}"
-        response = requests.get(url)
+        url = "https://calebcauthon--example-get-started-generate-document-dev.modal.run"
+        payload = {
+            "prompt": prompt,
+            "criteria": criteria,
+            "other_outputs": other_outputs
+        }
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url, json=payload, headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
