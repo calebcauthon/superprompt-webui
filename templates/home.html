@@ -31,14 +31,22 @@
         .blink {
             animation: blink 1s linear infinite;
         }
+        .fade {
+            transition: opacity 1s ease-in-out;
+            opacity: 0;
+        }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-sanitize.min.js"></script>
     <script>
-        angular.module('aiProjectBuilder', [])
-            .controller('MainController', function($scope, $http, $timeout, $window, $interval) {
+        angular.module('aiProjectBuilder', ['ngSanitize'])
+            .controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce) {
                 $scope.formData = {};
                 $scope.buttonText = 'Build with AI';
                 $scope.isBlinking = false;
+                $scope.activeTab = 'single';
+                $scope.resultsData = '';
+                $scope.fadeClass = '';
 
                 $scope.formData.aiInput = "A short story about space exploration";
                 $scope.formData.mustHaves = "Include a talking robot and a twist ending";
@@ -57,13 +65,21 @@
                             console.log('Success:', response);
                             var countdown = 3;
                             $scope.buttonText = 'Redirecting to results in ' + countdown + '...';
-                            $scope.isBlinking = false;
+                            $scope.isBlinking = false; 
                             var interval = $interval(function() {
                                 countdown--;
                                 $scope.buttonText = 'Redirecting to results in ' + countdown + '...';
+                                if (countdown === 1) {
+                                    $scope.fadeClass = 'fade';
+                                }
                                 if (countdown === 0) {
                                     $interval.cancel(interval);
-                                    $window.location.href = `/results/${response.data.uuid}`;
+                                    $scope.activeTab = 'multiple';
+                                    $scope.fadeClass = '';
+                                    $http.get(`/output/${response.data.uuid}`)
+                                        .then(function(outputResponse) {
+                                            $scope.resultsData = $sce.trustAsHtml(outputResponse.data.output);
+                                        });
                                 }
                             }, 1000);
                         }, function(error) {
@@ -81,24 +97,30 @@
 <body ng-controller="MainController">
     <div class="max-w-xl mx-auto p-5">
         <div class="flex border-b">
-            <div class="tab" ng-class="{'active-tab': activeTab === 'single'}" ng-click="activateTab('single')" id="singleTab">Single</div>
-            <div class="tab" ng-class="{'active-tab': activeTab === 'multiple'}" ng-click="activateTab('multiple')" id="multipleTab">Multiple</div>
+            <div class="tab" ng-class="{'active-tab': activeTab === 'single'}" ng-click="activateTab('single')" id="singleTab">Input</div>
+            <div class="tab" ng-class="{'active-tab': activeTab === 'multiple'}" ng-click="activateTab('multiple')" id="multipleTab">Results</div>
         </div>
-        <form class="space-y-6 py-5" ng-submit="submitForm()">
-            <div>
-                <label for="aiInput" class="block text-sm font-medium text-gray-700">Type in what you want AI to create</label>
-                <input type="text" id="aiInput" name="aiInput" ng-model="formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-            </div>
-            <div>
-                <label for="mustHaves" class="block text-sm font-medium text-gray-700">Describe any 'must-haves'</label>
-                <textarea id="mustHaves" name="mustHaves" ng-model="formData.mustHaves" rows="4" placeholder="E.g., Include a talking robot and a twist ending" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
-            </div>
-            <div>
-                <label for="supportingText" class="block text-sm font-medium text-gray-700">Copy and paste supporting text</label>
-                <textarea id="supportingText" name="supportingText" ng-model="formData.supportingText" rows="4" placeholder="E.g., Background information or context related to the request" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
-            </div>
-            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': isBlinking}">{{ buttonText }}</button>
-       </form>
+        <div ng-show="activeTab === 'single'" ng-class="fadeClass">
+            <form class="space-y-6 py-5" ng-submit="submitForm()">
+                <div>
+                    <label for="aiInput" class="block text-sm font-medium text-gray-700">Type in what you want AI to create</label>
+                    <input type="text" id="aiInput" name="aiInput" ng-model="formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="mustHaves" class="block text-sm font-medium text-gray-700">Describe any 'must-haves'</label>
+                    <textarea id="mustHaves" name="mustHaves" ng-model="formData.mustHaves" rows="4" placeholder="E.g., Include a talking robot and a twist ending" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+                <div>
+                    <label for="supportingText" class="block text-sm font-medium text-gray-700">Copy and paste supporting text</label>
+                    <textarea id="supportingText" name="supportbind-htmlingText" ng-model="formData.supportingText" rows="4" placeholder="E.g., Background information or context related to the request" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': isBlinking}">{{ buttonText }}</button>
+            </form>
+        </div>
+        <div ng-show="activeTab === 'multiple'" ng-bind-html="resultsData" ng-class="fadeClass">
+            <!-- Results will be displayed here -->
+        </div>
     </div>
 </body>
 </html>
+
