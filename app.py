@@ -1,6 +1,6 @@
 import time
 from flask import Flask, render_template, jsonify, request
-from libs.db_models import db, Submission, OutputDocument
+from libs.db_models import db, Submission, OutputDocument, SavedSetup
 from datetime import datetime
 import hashlib
 import requests
@@ -17,6 +17,40 @@ app.jinja_env.variable_end_string = ']]'
 @app.route('/')
 def home():
     return render_template('home.html')
+
+@app.route('/getSavedSetups')
+def get_saved_setups():
+    setups = SavedSetup.query.all()
+    setups_data = [{
+        'id': setup.id,
+        'user_id': setup.user_id,
+        'name': setup.name,
+        'setup_data': json.loads(setup.setup_data),
+        'timestamp': setup.timestamp.isoformat()
+    } for setup in setups]
+    return jsonify(setups_data)
+
+
+@app.route('/savesetup', methods=['POST'])
+def save_setup():
+    data = request.json
+    user_id = data.get('user_id', 1)  # Default to user ID 1 if not provided
+    name = data.get('name', 'Default Setup Name')  # Default name if not provided
+    id = data.get('setup_data', {}).get('id', None)  # Default id if not provided
+
+    setup_data = json.dumps(data.get('setup_data'))
+    new_setup = SavedSetup(setup_data=setup_data, user_id=user_id, name=name, timestamp=datetime.utcnow(), id=id)
+    print(f"incoming id is {id}")
+    if SavedSetup.query.get(id):
+        print(f"id exists in the database")
+        db.session.merge(new_setup)
+    else:
+        print(f"id does not exist in the database")
+        db.session.add(new_setup)
+    db.session.commit()
+
+    return jsonify({"message": "Setup saved successfully", "setup_id": new_setup.id}), 201
+
 
 @app.route('/results/<uuid>')
 def results(uuid):
@@ -37,7 +71,13 @@ def view_all():
         output_documents_table += f"<tr><td>{document.id}</td><td>{document.submission_id}</td><td>{document.output}</td></tr>"
     output_documents_table += "</table>"
 
-    return f"<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}"
+    saved_setups = SavedSetup.query.all()
+    saved_setups_table = "<table border='1'><tr><th>ID</th><th>User ID</th><th>Name</th><th>Setup Data</th><th>Timestamp</th></tr>"
+    for setup in saved_setups:
+        saved_setups_table += f"<tr><td>{setup.id}</td><td>{setup.user_id}</td><td>{setup.name}</td><td>{setup.setup_data}</td><td>{setup.timestamp}</td></tr>"
+    saved_setups_table += "</table>"
+
+    return f"<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}<h1>Saved Setups</h1>{saved_setups_table}"
 
 
 @app.route('/output/<uuid>')

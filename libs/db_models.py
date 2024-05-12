@@ -15,3 +15,11 @@ class OutputDocument(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     submission_id = db.Column(db.Integer, db.ForeignKey('submission.id'), nullable=False)
     output = db.Column(db.Text, nullable=False)
+
+class SavedSetup(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    setup_data = db.Column(db.Text, nullable=False)  # JSON structure
+    timestamp = db.Column(db.DateTime, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+

@@ -1,15 +1,97 @@
-angular.module('aiProjectBuilder', ['ngSanitize'])
-.controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce) {
-    $scope.formData = {};
-    $scope.buttonText = 'Build with AI';
+const app = angular.module('aiProjectBuilder', ['ngSanitize'])
+app.filter('pluralize', function() {
+    return function(number, singular, plural) {
+        return number === 1 ? singular : plural;
+    };
+});
+app.controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce) {
     $scope.isBlinking = false;
     $scope.activeTab = 'single';
     $scope.resultsData = '';
     $scope.fadeClass = '';
 
-    $scope.formData.aiInput = "A short story about space exploration";
-    $scope.formData.mustHaves = "Include a talking robot and a twist ending";
-    $scope.formData.supportingText = "Background information or context related to the request";
+    $scope.jsonData = { 'test': 'test' };
+    $interval(function() {
+        refreshJsonTabs();
+    }, 1000);
+
+    function getSavedSetups() {
+        $http.get('/getSavedSetups').then(function(response) {
+            $scope.savedSetups = response.data;
+        });
+    }
+
+    getSavedSetups();
+
+    $scope.loadSavedSetup = function(savedSetup) {
+        console.log('loading setup:', savedSetup);
+        $scope.jsonData = {}
+        $scope.jsonData.id = savedSetup.id;
+        $scope.jsonData.name = savedSetup.name;
+        $scope.inputTabs = savedSetup.setup_data.inputTabs;
+        $scope.inputTabs.forEach(function(tab) {
+            tab.buttonText = 'Build with AI';
+            tab.isBlinking = false;
+        });
+        refreshJsonTabs();
+        console.log('after a full load, json data:', {
+            'jsonData': $scope.jsonData,
+            'inputTabs': $scope.inputTabs
+        });
+    };
+
+
+
+    function refreshJsonTabs() {
+        // Preserve the overarching ID if it exists
+        const existingId = $scope.jsonData.id;
+
+        $scope.jsonData = {
+            id: existingId, // Reapply the existing overarching ID
+            name: $scope.jsonData.name,
+            inputTabs: $scope.inputTabs.map(tab => {
+                return {
+                    id: tab.id,
+                    title: tab.title,
+                    formData: tab.formData,
+                    resultsData: tab.resultsData
+                };
+            })
+        };
+        if ($scope.inputTabs.length === 1 && $scope.inputTabs[0].title === "Input") {
+            const formData = $scope.inputTabs[0].formData;
+            if (!formData.aiInput && !formData.mustHaves && !formData.supportingText) {
+                console.log("Skipping save due to empty input fields in the only tab.");
+                return;
+            }
+        }
+
+        saveJsonDataToDB();
+    }
+
+    function saveJsonDataToDB() {
+        $http.post('/savesetup', {
+            setup_data: $scope.jsonData
+        })
+        .then(function(response) {
+            const setup_id = response.data.setup_id;
+
+            if (!$scope.jsonData.id) {
+                getSavedSetups();
+            };
+            
+            $scope.jsonData.id = setup_id;
+        })
+        .catch(function(error) {
+            console.error('Error saving setup:', error);
+        });
+    }
+
+    $scope.saveJsonDataToDB = saveJsonDataToDB;
+
+    $scope.getTabTitles = function(savedSetup) {
+        return savedSetup.setup_data.inputTabs.map(tab => tab.title).join(', ');
+    };
 
     const tabInfoTemplate = {
         buttonText: 'Build with AI',
