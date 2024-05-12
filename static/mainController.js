@@ -30,24 +30,12 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
                 $scope.addInputTab();
             });
         }
-    });
-    $window.addEventListener('keydown', function(event) {
-        if (event.key === 'ArrowRight') {
-            $scope.$apply(function() {
-                var currentIndex = $scope.inputTabs.findIndex(tab => tab.id === $scope.activeTab);
-                if (currentIndex < $scope.inputTabs.length - 1) {
-                    $scope.activateTab($scope.inputTabs[currentIndex + 1].id);
-                }
-            });
-        } else if (event.key === 'ArrowLeft') {
-            $scope.$apply(function() {
-                var currentIndex = $scope.inputTabs.findIndex(tab => tab.id === $scope.activeTab);
-                if (currentIndex > 0) {
-                    $scope.activateTab($scope.inputTabs[currentIndex - 1].id);
-                }
-            });
-        }
-    });
+    }); 
+
+    on('ArrowRight', tabRight, { $window, $scope });
+    on('ArrowLeft', tabLeft, { $window, $scope });
+    on('n', newTab, { $window, $scope });
+
     $scope.addInputTab = function() {
         var newTabId = 'tab' + ($scope.inputTabs.length + 1);
         const tab = { ...tabInfoTemplate, id: newTabId, title: 'Input ' + ($scope.inputTabs.length + 1) }; 
@@ -100,3 +88,31 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
             });
     };
 });
+
+
+function on(key, action, context) {
+    context.$window.addEventListener('keydown', function(event) {
+        if (event.key === key) {
+            context.$scope.$apply(action(context.$scope));
+        }
+    });
+}
+
+function tabRight($scope) {
+    var currentIndex = $scope.inputTabs.findIndex(tab => tab.id === $scope.activeTab);
+    if (currentIndex < $scope.inputTabs.length - 1) {
+        $scope.activateTab($scope.inputTabs[currentIndex + 1].id);
+    }
+}
+
+function tabLeft($scope) {
+    var currentIndex = $scope.inputTabs.findIndex(tab => tab.id === $scope.activeTab);
+    if (currentIndex > 0) {
+        $scope.activateTab($scope.inputTabs[currentIndex - 1].id);
+    }
+}
+
+function newTab($scope) {
+    $scope.addInputTab();
+}
+
