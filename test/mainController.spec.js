@@ -47,6 +47,36 @@ describe('MainController', function() {
         });
     });
 
+    describe('$scope.loadSavedSetup function', function() {
+        it('should properly load a saved setup into $scope', function() {
+            var $scope = $rootScope.$new();
+            var controller = $controller('MainController', { $scope: $scope });
+            var mockSavedSetup = {
+                id: 200,
+                name: 'Test Setup',
+                setup_data: {
+                    inputTabs: [
+                        { id: 'tab1', title: 'Tab 1', formData: {}, resultsData: {} },
+                        { id: 'tab2', title: 'Tab 2', formData: {}, resultsData: {} }
+                    ]
+                }
+            };
+
+            spyOn($scope, 'loadSavedSetup').and.callThrough();
+            $scope.loadSavedSetup(mockSavedSetup);
+
+            expect($scope.loadSavedSetup).toHaveBeenCalled();
+            expect($scope.jsonData.id).toEqual(mockSavedSetup.id);
+            expect($scope.jsonData.name).toEqual(mockSavedSetup.name);
+            expect($scope.inputTabs.length).toEqual(mockSavedSetup.setup_data.inputTabs.length);
+            expect($scope.inputTabs[0].buttonText).toEqual('Build with AI');
+            expect($scope.inputTabs[0].isBlinking).toBe(false);
+            expect($scope.inputTabs[1].buttonText).toEqual('Build with AI');
+            expect($scope.inputTabs[1].isBlinking).toBe(false);
+        });
+    });
+
     // Additional tests can be added here
 });
+
 

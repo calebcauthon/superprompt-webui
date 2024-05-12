@@ -5,58 +5,22 @@ app.filter('pluralize', function() {
     };
 });
 
-app.factory('UtilsService', function($http) {
+app.factory('UtilsService', function($http, $interval) {
     function getSavedSetups() {
         return $http.get('/getSavedSetups').then(function(response) {
             return response.data;
         });
     }
 
-    return {
-        getSavedSetups
-    };
-});
 
-app.controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce, UtilsService) {
-    const utils = UtilsService;
-
-    $scope.isBlinking = false;
-    $scope.activeTab = 'single';
-    $scope.resultsData = '';
-    $scope.fadeClass = '';
-
-    $scope.jsonData = { 'test': 'test' };
-    $interval(function() {
-        refreshJsonTabs();
-    }, 1000);
-
-    utils.getSavedSetups().then(setups => $scope.savedSetups = setups);
-
-    $scope.loadSavedSetup = function(savedSetup) {
-        console.log('loading setup:', savedSetup);
-        $scope.jsonData = {}
-        $scope.jsonData.id = savedSetup.id;
-        $scope.jsonData.name = savedSetup.name;
-        $scope.inputTabs = savedSetup.setup_data.inputTabs;
-        $scope.inputTabs.forEach(function(tab) {
-            tab.buttonText = 'Build with AI';
-            tab.isBlinking = false;
-        });
-        refreshJsonTabs();
-        console.log('after a full load, json data:', {
-            'jsonData': $scope.jsonData,
-            'inputTabs': $scope.inputTabs
-        });
-    };
-
-    function refreshJsonTabs() {
+    function refreshJsonTabs(jsonData, inputTabs) {
         // Preserve the overarching ID if it exists
-        const existingId = $scope.jsonData.id;
+        const existingId = jsonData.id;
 
-        $scope.jsonData = {
+        return {
             id: existingId, // Reapply the existing overarching ID
-            name: $scope.jsonData.name,
-            inputTabs: $scope.inputTabs.map(tab => {
+            name: jsonData.name,
+            inputTabs: inputTabs.map(tab => {
                 return {
                     id: tab.id,
                     title: tab.title,
@@ -65,40 +29,18 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
                 };
             })
         };
-        if ($scope.inputTabs.length === 1 && $scope.inputTabs[0].title === "Input") {
-            const formData = $scope.inputTabs[0].formData;
-            if (!formData.aiInput && !formData.mustHaves && !formData.supportingText) {
-                console.log("Skipping save due to empty input fields in the only tab.");
-                return;
-            }
-        }
-
-        saveJsonDataToDB();
     }
 
-    function saveJsonDataToDB() {
-        $http.post('/savesetup', {
-            setup_data: $scope.jsonData
-        })
-        .then(function(response) {
-            const setup_id = response.data.setup_id;
-
-            if (!$scope.jsonData.id) {
-                getSavedSetups();
-            };
-            
-            $scope.jsonData.id = setup_id;
-        })
-        .catch(function(error) {
-            console.error('Error saving setup:', error);
+    function setScopeFromSavedSetup($scope, savedSetup) {
+        $scope.jsonData = {}
+        $scope.jsonData.id = savedSetup.id;
+        $scope.jsonData.name = savedSetup.name;
+        $scope.inputTabs = savedSetup.setup_data.inputTabs;
+        $scope.inputTabs.forEach(function(tab) {
+            tab.buttonText = 'Build with AI';
+            tab.isBlinking = false;
         });
     }
-
-    $scope.saveJsonDataToDB = saveJsonDataToDB;
-
-    $scope.getTabTitles = function(savedSetup) {
-        return savedSetup.setup_data.inputTabs.map(tab => tab.title).join(', ');
-    };
 
     const tabInfoTemplate = {
         buttonText: 'Build with AI',
@@ -107,47 +49,8 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
         title: 'Input',
         id: 'single',
         resultsData: null
-    };
+    }
 
-    $scope.inputTabs = [
-        { ...tabInfoTemplate, id: 'single', title: 'Input', formData: {} }
-    ];
-
-//    on('ArrowRight', tabRight, { $window, $scope });
-//    on('ArrowLeft', tabLeft, { $window, $scope });
-//    on('n', newTab, { $window, $scope });
-
-    $scope.addInputTab = function() {
-        var newTabId = 'tab' + ($scope.inputTabs.length + 1);
-        const tab = { ...tabInfoTemplate, id: newTabId, title: 'Input ' + ($scope.inputTabs.length + 1) }; 
-        tab.formData = {};
-        $scope.inputTabs.push(tab);
-        $scope.activateTab(newTabId);
-    };
-
-    $scope.activateTab = function(tabId) {
-        $scope.activeTab = tabId;
-    };
-
-    $scope.submitForm = function(tab) {
-        startBlinking(tab);
-        const data = {
-            description_input: tab.formData.aiInput,
-            must_haves_input: tab.formData.mustHaves,
-            supporting_text_input: tab.formData.supportingText,
-            other_outputs: $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData })),
-            user_id: 1 // Assuming a static user ID for demonstration
-        };
-        postBuild(data).then(response => {
-            setTabData(tab, response);
-            stopBlinking(tab);
-            startCountdown(tab, response);
-            retrieveOutput(tab, response);
-        }).catch(error => {
-            console.error('Error:', error);
-            stopBlinking(tab);
-        });
-    };
 
     function startBlinking(tab) {
         tab.buttonText = 'Generating ⏳';
@@ -193,6 +96,115 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
             tab.resultsData = outputResponse.data;
         });
     }
+
+
+    function saveJsonDataToDB($scope) {
+        $http.post('/savesetup', {
+            setup_data: $scope.jsonData
+        })
+        .then(function(response) {
+            const setup_id = response.data.setup_id;
+
+            if (!$scope.jsonData.id) {
+                getSavedSetups();
+            };
+            
+            $scope.jsonData.id = setup_id;
+        })
+        .catch(function(error) {
+            console.error('Error saving setup:', error);
+        });
+    }
+
+
+    function refreshJson($scope) {
+        $scope.jsonData = refreshJsonTabs($scope.jsonData, $scope.inputTabs);
+
+        if ($scope.inputTabs.length === 1 && $scope.inputTabs[0].title === "Input") {
+            const formData = $scope.inputTabs[0].formData;
+            if (!formData.aiInput && !formData.mustHaves && !formData.supportingText) {
+                console.log("Skipping save due to empty input fields in the only tab.");
+                return;
+            }
+        }
+
+        saveJsonDataToDB($scope);
+    }
+
+    return {
+        getSavedSetups,
+        refreshJsonTabs,
+        setScopeFromSavedSetup,
+        tabInfoTemplate,
+        startBlinking,
+        stopBlinking,
+        postBuild,
+        setTabData,
+        startCountdown,
+        retrieveOutput,
+        saveJsonDataToDB,
+        refreshJson
+    };
+});
+
+app.controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce, UtilsService) {
+    const utils = UtilsService;
+
+    $scope.isBlinking = false;
+    $scope.activeTab = 'single';
+    $scope.resultsData = '';
+    $scope.fadeClass = '';
+    $scope.jsonData = {};
+
+    $interval(() => utils.refreshJson($scope), 1000);
+
+    utils.getSavedSetups().then(setups => $scope.savedSetups = setups);
+
+    $scope.inputTabs = [
+        { ...utils.tabInfoTemplate, id: 'single', title: 'Input', formData: {} }
+    ];
+
+    // HTML Helpers
+    $scope.loadSavedSetup = function(savedSetup) {
+        utils.setScopeFromSavedSetup($scope, savedSetup);
+        utils.refreshJson($scope);
+    };
+
+    $scope.getTabTitles = function(savedSetup) {
+        return savedSetup.setup_data.inputTabs.map(tab => tab.title).join(', ');
+    };
+
+    $scope.addInputTab = function() {
+        var newTabId = 'tab' + ($scope.inputTabs.length + 1);
+        const tab = { ...utils.tabInfoTemplate, id: newTabId, title: 'Input ' + ($scope.inputTabs.length + 1) }; 
+        tab.formData = {};
+        $scope.inputTabs.push(tab);
+        $scope.activateTab(newTabId);
+    };
+
+    $scope.activateTab = function(tabId) {
+        $scope.activeTab = tabId;
+    };
+
+    $scope.submitForm = function(tab) {
+        startBlinking(tab);
+        const data = {
+            description_input: tab.formData.aiInput,
+            must_haves_input: tab.formData.mustHaves,
+            supporting_text_input: tab.formData.supportingText,
+            other_outputs: $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData })),
+            user_id: 1 // Assuming a static user ID for demonstration
+        };
+        postBuild(data).then(response => {
+            setTabData(tab, response);
+            stopBlinking(tab);
+            startCountdown(tab, response);
+            retrieveOutput(tab, response);
+        }).catch(error => {
+            console.error('Error:', error);
+            stopBlinking(tab);
+        });
+    };
 });
 
 
