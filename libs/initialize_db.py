@@ -8,8 +8,9 @@ def initialize_database():
     db.init_app(app)
     
     with app.app_context():
+        db.drop_all()
         db.create_all()
-        print("Database initialized and tables created.")
+        print("All tables dropped and then recreated in the database.")
 
 if __name__ == "__main__":
     initialize_database()
