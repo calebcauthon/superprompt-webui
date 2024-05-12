@@ -99,6 +99,13 @@
                         <li ng-repeat="prompt in tab.resultsData.all_prompts track by $index">{{ prompt }}</li>
                     </ul>
                 </div>
+
+                <div>
+                    <strong>Attributes:</strong>
+                    <ul style="font-family: 'Arial', sans-serif; font-size: 1.2em; list-style-type: circle; padding-left: 20px;">
+                        <li ng-repeat="(attr, value) in tab.resultsData.info track by $index">{{ attr }}: {{ value }}</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
