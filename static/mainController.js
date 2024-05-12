@@ -24,14 +24,6 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
         { ...tabInfoTemplate, id: 'single', title: 'Input', formData: {} }
     ];
 
-    $window.addEventListener('keydown', function(event) {
-        if (event.altKey && event.key === 'n') {
-            $scope.$apply(function() {
-                $scope.addInputTab();
-            });
-        }
-    }); 
-
     on('ArrowRight', tabRight, { $window, $scope });
     on('ArrowLeft', tabLeft, { $window, $scope });
     on('n', newTab, { $window, $scope });
@@ -49,44 +41,69 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
     };
 
     $scope.submitForm = function(tab) {
-        tab.buttonText = 'Generating ⏳';
-        tab.isBlinking = true;
-        let otherOutputs = $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData }));
-        $http.post('/build', {
+        startBlinking(tab);
+        const data = {
             description_input: tab.formData.aiInput,
             must_haves_input: tab.formData.mustHaves,
             supporting_text_input: tab.formData.supportingText,
-            other_outputs: otherOutputs,
+            other_outputs: $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData })),
             user_id: 1 // Assuming a static user ID for demonstration
-        })
-            .then(function(response) {
-                console.log('Success:', response);
-                var countdown = 3;
-                tab.buttonText = 'Redirecting to results in ' + countdown + '...';
-                tab.isBlinking = false; 
-                var interval = $interval(function() {
-                    countdown--;
-                    tab.buttonText = 'Displaying results in ' + countdown + '...';
-                    if (countdown === 1) {
-                        $scope.fadeClass = 'fade';
-                    }
-                    if (countdown === 0) {
-                        $interval.cancel(interval);
-                        $http.get(`/output/${response.data.uuid}`)
-                            .then(function(outputResponse) {
-                                tab.resultsData = outputResponse.data;
-                                tab.buttonText = 'Build with AI';
-                                tab.isBlinking = false;
-                                $scope.fadeClass = '';
-                            });
-                    }
-                }, 1000);
-            }, function(error) {
-                console.error('Error:', error);
-                tab.isBlinking = false;
-                tab.buttonText = 'Build with AI';
-            });
+        };
+        postBuild(data).then(response => {
+            setTabData(tab, response);
+            stopBlinking(tab);
+            startCountdown(tab, response);
+            retrieveOutput(tab, response);
+        }).catch(error => {
+            console.error('Error:', error);
+            stopBlinking(tab);
+        });
     };
+
+    function startBlinking(tab) {
+        tab.buttonText = 'Generating ⏳';
+        tab.isBlinking = true;
+    }
+
+    function stopBlinking(tab) {
+        tab.isBlinking = false;
+        tab.buttonText = 'Build with AI';
+    }
+
+    function postBuild(data) {
+        return $http.post('/build', data);
+    }
+
+    function setTabData(tab, response) {
+        console.log('Success:', response);
+        $http.get(`/output/${response.data.uuid}`).then(outputResponse => {
+            tab.resultsData = outputResponse.data;
+        });
+    }
+
+    function startCountdown(tab, response) {
+        var countdown = 3;
+        tab.buttonText = 'Redirecting to results in ' + countdown + '...';
+        var interval = $interval(function() {
+            countdown--;
+            tab.buttonText = 'Displaying results in ' + countdown + '...';
+            if (countdown === 1) {
+                $scope.fadeClass = 'fade';
+            }
+            if (countdown === 0) {
+                $interval.cancel(interval);
+                $scope.fadeClass = '';
+                tab.buttonText = 'Build with AI';
+                tab.isBlinking = false;
+            }
+        }, 1000);
+    }
+
+    function retrieveOutput(tab, response) {
+        $http.get(`/output/${response.data.uuid}`).then(outputResponse => {
+            tab.resultsData = outputResponse.data;
+        });
+    }
 });
 
 
