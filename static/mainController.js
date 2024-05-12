@@ -4,7 +4,22 @@ app.filter('pluralize', function() {
         return number === 1 ? singular : plural;
     };
 });
-app.controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce) {
+
+app.factory('UtilsService', function($http) {
+    function getSavedSetups() {
+        return $http.get('/getSavedSetups').then(function(response) {
+            return response.data;
+        });
+    }
+
+    return {
+        getSavedSetups
+    };
+});
+
+app.controller('MainController', function($scope, $http, $timeout, $window, $interval, $sce, UtilsService) {
+    const utils = UtilsService;
+
     $scope.isBlinking = false;
     $scope.activeTab = 'single';
     $scope.resultsData = '';
@@ -15,13 +30,7 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
         refreshJsonTabs();
     }, 1000);
 
-    function getSavedSetups() {
-        $http.get('/getSavedSetups').then(function(response) {
-            $scope.savedSetups = response.data;
-        });
-    }
-
-    getSavedSetups();
+    utils.getSavedSetups().then(setups => $scope.savedSetups = setups);
 
     $scope.loadSavedSetup = function(savedSetup) {
         console.log('loading setup:', savedSetup);
@@ -39,8 +48,6 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
             'inputTabs': $scope.inputTabs
         });
     };
-
-
 
     function refreshJsonTabs() {
         // Preserve the overarching ID if it exists
@@ -106,9 +113,9 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
         { ...tabInfoTemplate, id: 'single', title: 'Input', formData: {} }
     ];
 
-    on('ArrowRight', tabRight, { $window, $scope });
-    on('ArrowLeft', tabLeft, { $window, $scope });
-    on('n', newTab, { $window, $scope });
+//    on('ArrowRight', tabRight, { $window, $scope });
+//    on('ArrowLeft', tabLeft, { $window, $scope });
+//    on('n', newTab, { $window, $scope });
 
     $scope.addInputTab = function() {
         var newTabId = 'tab' + ($scope.inputTabs.length + 1);
