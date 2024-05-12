@@ -187,7 +187,7 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
     };
 
     $scope.submitForm = function(tab) {
-        startBlinking(tab);
+        utils.startBlinking(tab);
         const data = {
             description_input: tab.formData.aiInput,
             must_haves_input: tab.formData.mustHaves,
@@ -195,9 +195,9 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
             other_outputs: $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData })),
             user_id: 1 // Assuming a static user ID for demonstration
         };
-        postBuild(data).then(response => {
-            setTabData(tab, response);
-            stopBlinking(tab);
+        utils.postBuild(data).then(response => {
+            utils.setTabData(tab, response);
+            utils.stopBlinking(tab);
             startCountdown(tab, response);
             retrieveOutput(tab, response);
         }).catch(error => {

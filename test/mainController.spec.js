@@ -76,6 +76,62 @@ describe('MainController', function() {
         });
     });
 
+
+    describe('MainController HTML Helper Functions', function() {
+        var $scope, utils;
+
+        beforeEach(inject(function($rootScope, $controller, UtilsService) {
+            $scope = $rootScope.$new();
+            utils = UtilsService;
+            $controller('MainController', { $scope: $scope, UtilsService: utils });
+        }));
+
+        describe('$scope.loadSavedSetup', function() {
+            it('should call setScopeFromSavedSetup and refreshJson', function() {
+                var mockSavedSetup = { setup_data: { inputTabs: [] } };
+                $scope.loadSavedSetup(mockSavedSetup);
+            });
+        });
+
+        describe('$scope.getTabTitles', function() {
+            it('should return concatenated tab titles', function() {
+                var mockSavedSetup = {
+                    setup_data: {
+                        inputTabs: [
+                            { title: 'Tab 1' },
+                            { title: 'Tab 2' }
+                        ]
+                    }
+                };
+                $scope.getTabTitles(mockSavedSetup);
+            });
+        });
+
+        describe('$scope.addInputTab', function() {
+            it('should add a new input tab and activate it', function() {
+                $scope.inputTabs = [{ id: 'tab1', title: 'Input 1' }];
+                $scope.addInputTab();
+            });
+        });
+
+        describe('$scope.activateTab', function() {
+            it('should set the active tab', function() {
+                $scope.activateTab('tab1');
+            });
+        });
+
+        describe('$scope.submitForm', function() {
+            beforeEach(function() {
+            });
+
+            it('should handle form submission and manage tab states', function() {
+                var mockTab = { formData: { aiInput: '', mustHaves: '', supportingText: '' } };
+                $scope.inputTabs = [mockTab];
+                $scope.submitForm(mockTab);
+            });
+        });
+    });
+
     // Additional tests can be added here
 });
 
