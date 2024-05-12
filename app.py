@@ -58,7 +58,7 @@ def build():
     description, must_haves, supporting_text, user_id, other_outputs = extract_data(data)
     uuid = generate_uuid(description, must_haves, supporting_text, user_id)
     submission = create_submission(description, must_haves, supporting_text, user_id, uuid)
-    create_output_document(submission.id, description, must_haves, other_outputs)
+    create_output_document(submission.id, description, must_haves, other_outputs, supporting_text)
     return jsonify({"uuid": uuid}), 200
 
 def extract_data(data):
@@ -86,13 +86,14 @@ def create_submission(description, must_haves, supporting_text, user_id, uuid):
     db.session.commit()
     return submission
 
-def create_output_document(submission_id, prompt, criteria, other_outputs):
+def create_output_document(submission_id, prompt, criteria, other_outputs, supporting_text):
     def fetch_generated_output():
         url = "https://calebcauthon--example-get-started-generate-document-dev.modal.run"
         payload = {
             "prompt": prompt,
             "criteria": criteria,
-            "other_outputs": other_outputs
+            "other_outputs": other_outputs,
+            "supporting_text": supporting_text
         }
         headers = {'Content-Type': 'application/json'}
         response = requests.post(url, json=payload, headers=headers)
