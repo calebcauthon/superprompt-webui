@@ -50,7 +50,9 @@ angular.module('aiProjectBuilder', ['ngSanitize'])
     });
     $scope.addInputTab = function() {
         var newTabId = 'tab' + ($scope.inputTabs.length + 1);
-        $scope.inputTabs.push({ ...tabInfoTemplate, id: newTabId, title: 'Input ' + ($scope.inputTabs.length + 1) });
+        const tab = { ...tabInfoTemplate, id: newTabId, title: 'Input ' + ($scope.inputTabs.length + 1) }; 
+        tab.formData = {};
+        $scope.inputTabs.push(tab);
         $scope.activateTab(newTabId);
     };
 
