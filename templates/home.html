@@ -60,7 +60,6 @@
         <div class="flex border-b">
             <div class="tab" ng-repeat="tab in inputTabs" ng-class="{'active-tab': activeTab === tab.id}" ng-click="activateTab(tab.id)" ng-bind="tab.title"></div>
             <div class="tab" ng-click="addInputTab()">+</div>
-            <div class="tab" ng-class="{'active-tab': activeTab === 'multiple'}" ng-click="activateTab('multiple')" id="multipleTab">Results</div>
         </div>
         <div ng-repeat="tab in inputTabs" ng-show="activeTab === tab.id" ng-class="fadeClass" class="content-area">
             <form class="space-y-6 py-5" ng-submit="submitForm(tab)">
