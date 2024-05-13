@@ -10,6 +10,7 @@ class Submission(db.Model):
     user_id = db.Column(db.Integer, nullable=False)
     timestamp = db.Column(db.DateTime, nullable=False)
     uuid = db.Column(db.String(64), unique=True, nullable=False)
+    #template_type = db.Column(db.String(64), nullable=True)
 
 class OutputDocument(db.Model):
     id = db.Column(db.Integer, primary_key=True)

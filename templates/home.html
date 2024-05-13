@@ -50,6 +50,10 @@
             border: 2px solid #333;
             padding: 20px;
         }
+        .active-template-type {
+            background-color: #60a5fa; /* Tailwind blue-400 */
+            color: white;
+        }
     </style>
     <script src="static/angular.min.js"></script>
     <script src="static/angular-sanitize.min.js"></script>
@@ -71,26 +75,45 @@
                     <label for="tabTitle{{tab.id}}" class="block text-sm font-medium text-gray-700">Tab Title</label>
                     <input type="text" id="tabTitle{{tab.id}}" name="tabTitle" ng-model="tab.title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-                <div>
-                    <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Type in what you want AI to create</label>
-                    <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
+                    <div class="bg-white p-4 rounded-lg shadow-lg">
+                        <ul class="flex border border-gray-300 rounded-lg overflow-hidden">
+                            <li ng-repeat="thing in templateTypes" class="tab flex-1 text-center p-2 cursor-pointer" ng-click="selectTemplateType(tab, thing)" ng-class="{'active-template-type': tab.activeTemplateType == thing}" ng-bind="thing"></li>
+                        </ul>
+                    </div>
+
+                <div ng-show="tab.activeTemplateType === 'Create'">
+                  <div>
+                      <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Type in what you want AI to create</label>
+                      <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
+                  </div>
+                  <div>
+                      <label for="mustHaves{{tab.id}}" class="block text-sm font-medium text-gray-700">Describe any 'must-haves'</label>
+                      <textarea id="mustHaves{{tab.id}}" name="mustHaves" ng-model="tab.formData.mustHaves" rows="4" placeholder="E.g., Include a talking robot and a twist ending" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                  </div>
+                  <div>
+                      <label for="supportingText{{tab.id}}" class="block text-sm font-medium text-gray-700">Copy and paste supporting text</label>
+                      <textarea id="supportingText{{tab.id}}" name="supportingText" ng-model="tab.formData.supportingText" rows="4" placeholder="E.g., Background information or context related to the request" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                  </div>
                 </div>
-                <div>
-                    <label for="mustHaves{{tab.id}}" class="block text-sm font-medium text-gray-700">Describe any 'must-haves'</label>
-                    <textarea id="mustHaves{{tab.id}}" name="mustHaves" ng-model="tab.formData.mustHaves" rows="4" placeholder="E.g., Include a talking robot and a twist ending" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                <div ng-show="tab.activeTemplateType === 'Extract'">
+                  <div>
+                      <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Type in what you want AI to extract</label>
+                      <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
+                  </div>
                 </div>
-                <div>
-                    <label for="supportingText{{tab.id}}" class="block text-sm font-medium text-gray-700">Copy and paste supporting text</label>
-                    <textarea id="supportingText{{tab.id}}" name="supportingText" ng-model="tab.formData.supportingText" rows="4" placeholder="E.g., Background information or context related to the request" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                <div ng-show="tab.activeTemplateType === 'Document'">
+                  <div>
+                      <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Paste in any information you want to use later</label>
+                      <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
+                  </div>
                 </div>
+
+
                 <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': tab.isBlinking}">{{ tab.buttonText }}</button>
             </form>
             <div ng-if="tab.resultsData" class="results-display">
-                <span ng-if="tab.resultsData.success_result" style="font-family: 'Arial', sans-serif; color: #27ae60;">Success! 🎉</span>
-                <span ng-if="!tab.resultsData.success_result" style="font-family: 'Arial', sans-serif; color: #c0392b;">Failure. 😞</span>
-                <h2 style="font-family: 'Arial', sans-serif; color: #2c3e50;">Results 📄</h2>
                 <p style="font-family: 'Arial', sans-serif; font-size: 1.2em; padding: 10px; border-radius: 8px;">
-                    <strong>Final Output:</strong>
+                    <strong>Final Output 📄:</strong>
                     <pre ng-bind-html="tab.resultsData.result"></pre>
                 </p>
                 <br />

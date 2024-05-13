@@ -15,7 +15,14 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
         { ...utils.tabInfoTemplate, id: 'single', title: 'Input', formData: {} }
     ];
 
+    $scope.templateTypes = ['Create', 'Extract', 'Document'];
+
     // HTML Helpers
+    $scope.selectTemplateType = function(tab, thing) {
+        tab.activeTemplateType = thing;
+        console.log(tab.activeTemplateType);
+    };
+
     $scope.loadSavedSetup = function(savedSetup) {
         utils.setScopeFromSavedSetup($scope, savedSetup);
         utils.refreshJson($scope);
@@ -39,11 +46,17 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
 
     $scope.submitForm = function(tab) {
         utils.startBlinking(tab);
+        console.log('scope input tabes', $scope.inputTabs);
         const data = {
+            template_type: tab.activeTemplateType,
             description_input: tab.formData.aiInput,
             must_haves_input: tab.formData.mustHaves,
             supporting_text_input: tab.formData.supportingText,
-            other_outputs: $scope.inputTabs.map(t => ({ title: t.title, resultsData: t.resultsData })),
+            other_outputs: $scope.inputTabs.map(t => ({
+                prompt: t.formData.aiInput,
+                title: t.title,
+                resultsData: t.resultsData
+            })),
             user_id: 1 // Assuming a static user ID for demonstration
         };
         api.postBuild(data).then(response => {

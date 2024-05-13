@@ -95,10 +95,10 @@ def output_document(uuid):
 @app.route('/build', methods=['POST'])
 def build():
     data = request.json
-    description, must_haves, supporting_text, user_id, other_outputs = extract_data(data)
+    description, must_haves, supporting_text, user_id, other_outputs, template_type = extract_data(data)
     uuid = generate_uuid(description, must_haves, supporting_text, user_id)
-    submission = create_submission(description, must_haves, supporting_text, user_id, uuid)
-    create_output_document(submission.id, description, must_haves, other_outputs, supporting_text)
+    submission = create_submission(description, must_haves, supporting_text, user_id, uuid, template_type)
+    create_output_document(submission.id, description, must_haves, other_outputs, supporting_text, template_type)
     return jsonify({"uuid": uuid}), 200
 
 def extract_data(data):
@@ -107,14 +107,16 @@ def extract_data(data):
     supporting_text = data.get('supporting_text_input')
     user_id = data.get('user_id')
     other_outputs = data.get('other_outputs')
-    return description, must_haves, supporting_text, user_id, other_outputs
+    template_type = data.get('template_type')
+    return description, must_haves, supporting_text, user_id, other_outputs, template_type
 
 def generate_uuid(description, must_haves, supporting_text, user_id):
     unique_string = f"{description}{must_haves}{supporting_text}{user_id}{datetime.utcnow()}"
     return hashlib.sha256(unique_string.encode()).hexdigest()
 
-def create_submission(description, must_haves, supporting_text, user_id, uuid):
+def create_submission(description, must_haves, supporting_text, user_id, uuid, template_type):
     submission = Submission(
+        #template_type=template_type,
         description=description,
         must_haves=must_haves,
         supporting_text=supporting_text,
@@ -126,10 +128,11 @@ def create_submission(description, must_haves, supporting_text, user_id, uuid):
     db.session.commit()
     return submission
 
-def create_output_document(submission_id, prompt, criteria, other_outputs, supporting_text):
+def create_output_document(submission_id, prompt, criteria, other_outputs, supporting_text, template_type):
     def fetch_generated_output():
         url = "https://calebcauthon--example-get-started-generate-document-dev.modal.run"
         payload = {
+            "template_type": template_type,
             "prompt": prompt,
             "criteria": criteria,
             "other_outputs": other_outputs,

@@ -61,7 +61,8 @@ app.factory('UtilsService', function($interval, api) {
                     id: tab.id,
                     title: tab.title,
                     formData: tab.formData,
-                    resultsData: tab.resultsData
+                    resultsData: tab.resultsData,
+                    activeTemplateType: tab.activeTemplateType
                 };
             })
         };

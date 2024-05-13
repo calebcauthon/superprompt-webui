@@ -158,6 +158,56 @@ describe('MainController', function() {
 
                 expect(mockTab.resultsData).toBeDefined();
             });
+
+        describe('$scope.submitForm with aiInput included', function() {
+            it('should include aiInput in the data sent to /build', function() {
+                var mockTab = {
+                    id: 'tab1',
+                    title: 'Input 1',
+                    formData: {
+                        aiInput: 'Example AI Input',
+                        mustHaves: 'Example Must Haves',
+                        supportingText: 'Example Supporting Text'
+                    },
+                    activeTemplateType: 'Create'
+                };
+                $scope.inputTabs = [mockTab];
+                $scope.activateTab(mockTab.id);
+
+                var expectedData = {
+                    template_type: mockTab.activeTemplateType,
+                    description_input: mockTab.formData.aiInput,
+                    must_haves_input: mockTab.formData.mustHaves,
+                    supporting_text_input: mockTab.formData.supportingText,
+                    other_outputs: $scope.inputTabs.map(t => ({
+                        prompt: t.formData.aiInput,
+                        title: t.title,
+                        resultsData: t.resultsData
+                    })),
+                    user_id: 1
+                };
+
+                
+
+                $httpBackend.expectGET('/getSavedSetups').respond(200, []);
+
+                // assertion
+                $httpBackend.expectPOST('/build', (params) => {
+                    return JSON.parse(params).other_outputs[0].prompt === mockTab.formData.aiInput;
+                }).respond(200, { uuid: '12345' });
+
+                $httpBackend.whenGET(`/output/12345`).respond(200, { results: 'Generated Output' });
+                $scope.submitForm(mockTab);
+                $httpBackend.flush();
+
+                $httpBackend.expectPOST('/savesetup').respond(200, { setup_id: 'newSetupId' });
+                $interval.flush(1000);
+
+                $httpBackend.expectPOST('/savesetup').respond(200, { setup_id: 'newSetupId' });
+                $interval.flush(1000);
+
+            });
+        });
         });
     });
 });
