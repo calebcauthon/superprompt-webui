@@ -1,13 +1,14 @@
 describe('MainController', function() {
-    var $controller, $rootScope, $httpBackend, $timeout, $http;
+    var $controller, $rootScope, $httpBackend, $timeout, $http, $interval;
     beforeEach(module('aiProjectBuilder'));
 
-    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$timeout_, _$http_){
+    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$timeout_, _$http_, _$interval_){
         $controller = _$controller_;
         $rootScope = _$rootScope_;
         $httpBackend = _$httpBackend_;
         $timeout = _$timeout_;
         $http = _$http_;
+        $interval = _$interval_;
     }));
 
     it('should create controller', function() {
@@ -130,9 +131,33 @@ describe('MainController', function() {
                 $scope.submitForm(mockTab);
             });
         });
+
+        describe('$scope.submitForm', function() {
+            it('should properly handle the form submission process', function() {
+                var mockTab = {
+                    formData: {
+                        aiInput: 'Test AI Input',
+                        mustHaves: 'Test Must Haves',
+                        supportingText: 'Test Supporting Text'
+                    }
+                };
+                $scope.inputTabs = [mockTab];
+
+                
+                $httpBackend.expectGET('/getSavedSetups').respond(200, []);
+                $httpBackend.expectPOST('/build').respond(200, { uuid: '12345' });
+                $httpBackend.whenGET(`/output/12345`).respond(200, { results: 'Generated Output' });
+                $scope.submitForm(mockTab);
+                $httpBackend.flush();
+
+                $httpBackend.expectPOST('/savesetup').respond(200, { setup_id: 'newSetupId' });
+                $interval.flush(1000);
+
+                $httpBackend.expectPOST('/savesetup').respond(200, { setup_id: 'newSetupId' });
+                $interval.flush(1000);
+
+                expect(mockTab.resultsData).toBeDefined();
+            });
+        });
     });
-
-    // Additional tests can be added here
 });
-
-

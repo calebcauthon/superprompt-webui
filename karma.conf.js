@@ -18,6 +18,8 @@ module.exports = function(config) {
       'static/angular.min.js',
       'static/angular-sanitize.min.js',
       'static/angular-mocks.min.js',
+      'static/app.js',
+      'static/mainControllerUtils.js',
       'static/mainController.js',
       'test/**/*.spec.js',
       'test/**/*.spec.js'
