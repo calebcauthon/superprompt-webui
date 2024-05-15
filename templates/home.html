@@ -54,8 +54,6 @@
             padding: 20px;
         }
         .active-template-type {
-            background-color: #60a5fa; /* Tailwind blue-400 */
-            color: white;
         }
     </style>
     <script src="static/angular.min.js"></script>
@@ -80,7 +78,7 @@
                 </div>
                     <div class="bg-white p-4 rounded-lg shadow-lg">
                         <ul class="flex border border-gray-300 rounded-lg overflow-hidden">
-                            <li ng-repeat="thing in templateTypes" class="tab flex-1 text-center p-2 cursor-pointer" ng-click="selectTemplateType(tab, thing)" ng-class="{'active-template-type': tab.activeTemplateType == thing}" ng-bind="thing"></li>
+                            <li ng-repeat="thing in templateTypes" class="tab flex-1 text-center p-2 cursor-pointer" ng-click="selectTemplateType(tab, thing)" ng-class="{'active-template-type bg-indigo-600 text-white': tab.activeTemplateType == thing}" ng-bind="thing"></li>
                         </ul>
                     </div>
                 <div ng-show="tab.activeTemplateType === 'Create'">
@@ -88,11 +86,11 @@
                       <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Type in what you want AI to create</label>
                       <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
                   </div>
-                  <div>
+                  <div ng-hide="true">
                       <label for="mustHaves{{tab.id}}" class="block text-sm font-medium text-gray-700">Describe any 'must-haves'</label>
                       <textarea id="mustHaves{{tab.id}}" name="mustHaves" ng-model="tab.formData.mustHaves" rows="4" placeholder="E.g., Include a talking robot and a twist ending" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                   </div>
-                  <div>
+                  <div class="mt-4">
                       <label for="supportingText{{tab.id}}" class="block text-sm font-medium text-gray-700">Copy and paste supporting text</label>
                       <textarea id="supportingText{{tab.id}}" name="supportingText" ng-model="tab.formData.supportingText" rows="4" placeholder="E.g., Background information or context related to the request" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                   </div>
