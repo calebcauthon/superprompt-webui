@@ -1,14 +1,15 @@
 describe('MainController', function() {
-    var $controller, $rootScope, $httpBackend, $timeout, $http, $interval;
+    var $controller, $rootScope, $httpBackend, $timeout, $http, $interval, $window;
     beforeEach(module('aiProjectBuilder'));
 
-    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$timeout_, _$http_, _$interval_){
+    beforeEach(inject(function(_$controller_, _$rootScope_, _$httpBackend_, _$timeout_, _$http_, _$interval_, _$window_){
         $controller = _$controller_;
         $rootScope = _$rootScope_;
         $httpBackend = _$httpBackend_;
         $timeout = _$timeout_;
         $http = _$http_;
         $interval = _$interval_;
+        $window = _$window_;
     }));
 
     it('should create controller', function() {
@@ -118,6 +119,35 @@ describe('MainController', function() {
         describe('$scope.activateTab', function() {
             it('should set the active tab', function() {
                 $scope.activateTab('tab1');
+            });
+        });
+
+        describe('$scope.deleteSavedSetup', function() {
+            it('should remove a setup from $scope.savedSetups', function() {
+                // Setup
+                var setupToDelete = { id: 'setup1', name: 'Test Setup' };
+                $scope.savedSetups = [setupToDelete, { id: 'setup2', name: 'Another Setup' }];
+
+                // Spy on window.confirm to simulate user confirmation
+                spyOn($window, 'prompt').and.returnValue("delete setup1");
+                spyOn($http, 'delete').and.returnValue({
+                    then: function(onFulfilled) {
+                        return {
+                            catch: function(onRejected) {
+                                onFulfilled({});
+                                return { finally: function(onFinally) { onFinally(); } };
+                            }
+                        };
+                    }
+                });
+
+                // Action
+                $scope.deleteSavedSetup(setupToDelete);
+
+                // Assert
+                expect($scope.savedSetups.length).toBe(1);
+                expect($scope.savedSetups[0].id).toEqual('setup2');
+                expect($http.delete).toHaveBeenCalledWith('/savedsetup/' + setupToDelete.id);
             });
         });
 

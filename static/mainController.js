@@ -28,6 +28,28 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
         utils.refreshJson($scope);
     };
 
+    $scope.deleteSavedSetup = function(savedSetup) {
+        const confirmationInput = $window.prompt(`Please type 'delete ${savedSetup.id}' to confirm deletion:`);
+        console.log('confirmationInput', confirmationInput);
+        if (confirmationInput === `delete ${savedSetup.id}`) {
+            const index = $scope.savedSetups.indexOf(savedSetup);
+            if (index > -1) {
+                $scope.savedSetups.splice(index, 1);
+
+                // Perform a DELETE request to the server
+                $http.delete('/savedsetup/' + savedSetup.id)
+                    .then(() => {
+                        console.log('Setup deleted successfully');
+                    })
+                    .catch(error => {
+                        console.error('Error deleting setup:', error);
+                    });
+            }
+        } else {
+            alert('Deletion cancelled or incorrect confirmation.');
+        }
+    };
+
     $scope.getTabTitles = function(savedSetup) {
         return savedSetup.setup_data.inputTabs.map(tab => tab.title).join(', ');
     };

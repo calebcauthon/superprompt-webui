@@ -18,6 +18,18 @@ app.jinja_env.variable_end_string = ']]'
 def home():
     return render_template('home.html')
 
+@app.route('/savedsetup/<int:setup_id>', methods=['DELETE'])
+def delete_saved_setup(setup_id):
+    setup = SavedSetup.query.get(setup_id)
+    if setup:
+        db.session.delete(setup)
+        db.session.commit()
+        return jsonify({"message": "Setup deleted successfully"}), 200
+    else:
+        return jsonify({"error": "Setup not found"}), 404
+
+
+
 @app.route('/getSavedSetups')
 def get_saved_setups():
     setups = SavedSetup.query.all()
