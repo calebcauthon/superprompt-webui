@@ -44,7 +44,7 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
             copyAlert.style.transition = 'opacity 0.5s';
             copyAlert.style.opacity = '0';
             setTimeout(() => document.body.removeChild(copyAlert), 500);
-        }, 2000);
+        }, 1000);
     };
 
     $scope.copyOutput = function(tab) {
@@ -54,9 +54,14 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
             textArea.value = textToCopy;
             document.body.appendChild(textArea);
             textArea.select();
-            document.execCommand('copy');
+            navigator.clipboard.writeText(textArea.value)
+                .then(() => {
+                    $scope.showCopyAlert('Output copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
             document.body.removeChild(textArea);
-            $scope.showCopyAlert('Output copied to clipboard!');
         } else {
             alert('No output available to copy.');
         }

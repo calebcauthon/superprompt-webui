@@ -314,13 +314,13 @@ describe('MainController', function() {
                 spyOn(document, 'createElement').and.callThrough();
                 spyOn(document.body, 'appendChild').and.callThrough();
                 spyOn(document.body, 'removeChild').and.callThrough();
-                spyOn(document, 'execCommand').and.returnValue(true);
+                spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve(true));
 
                 $scope.copyOutput($scope.inputTabs[0]);
 
                 expect(document.createElement).toHaveBeenCalledWith('textarea');
                 expect(document.body.appendChild).toHaveBeenCalled();
-                expect(document.execCommand).toHaveBeenCalledWith('copy');
+                expect(navigator.clipboard.writeText).toHaveBeenCalledWith('Test result');
                 expect(document.body.removeChild).toHaveBeenCalled();
             });
         });
