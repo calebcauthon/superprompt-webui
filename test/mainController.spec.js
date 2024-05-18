@@ -286,5 +286,23 @@ describe('MainController', function() {
             });
         });
 
+        describe('$scope.buildAll function', function() {
+            it('should call submitForm for each tab in inputTabs', function() {
+                var $scope = $rootScope.$new();
+                var controller = $controller('MainController', { $scope: $scope });
+                $scope.inputTabs = [
+                    { id: 'tab1', title: 'Tab 1', formData: {}, selectedLLM: { model: 'gpt-4' } },
+                    { id: 'tab2', title: 'Tab 2', formData: {}, selectedLLM: { model: 'gpt-3.5' } }
+                ];
+
+                spyOn($scope, 'submitForm');
+
+                $scope.buildAll();
+
+                expect($scope.submitForm.calls.count()).toEqual(2);
+                expect($scope.submitForm).toHaveBeenCalledWith($scope.inputTabs[0]);
+                expect($scope.submitForm).toHaveBeenCalledWith($scope.inputTabs[1]);
+            });
+        });
     });
 });
