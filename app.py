@@ -28,8 +28,6 @@ def delete_saved_setup(setup_id):
     else:
         return jsonify({"error": "Setup not found"}), 404
 
-
-
 @app.route('/getSavedSetups')
 def get_saved_setups():
     setups = SavedSetup.query.all()
@@ -41,7 +39,6 @@ def get_saved_setups():
         'timestamp': setup.timestamp.isoformat()
     } for setup in setups]
     return jsonify(setups_data)
-
 
 @app.route('/savesetup', methods=['POST'])
 def save_setup():
@@ -62,7 +59,6 @@ def save_setup():
     db.session.commit()
 
     return jsonify({"message": "Setup saved successfully", "setup_id": new_setup.id}), 201
-
 
 @app.route('/results/<uuid>')
 def results(uuid):
