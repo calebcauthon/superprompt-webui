@@ -29,6 +29,12 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
     $scope.templateTypes = ['Create', 'Extract', 'Document'];
 
     // HTML Helpers
+    $scope.buildAll = function() {
+        $scope.inputTabs.forEach(tab => {
+            $scope.submitForm(tab);
+        });
+    };
+
     $scope.importJsonData = function() {
         const jsonDataInput = $window.prompt("Please paste the JSON data here:");
         try {
@@ -50,6 +56,13 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
     $scope.loadSavedSetup = function(savedSetup) {
         utils.setScopeFromSavedSetup($scope, savedSetup);
         utils.refreshJson($scope);
+
+        $scope.inputTabs.forEach(tab => {
+            const matchingLLM = $scope.llms.find(llm => llm.display === tab.selectedLLM.display);
+            if (matchingLLM) {
+                tab.selectedLLM = matchingLLM;
+            }
+        });
     };
 
     $scope.deleteSavedSetup = function(savedSetup) {

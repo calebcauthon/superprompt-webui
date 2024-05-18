@@ -101,8 +101,9 @@
                       </select>
                   </div>
 
-                  <div class="build-with-ai-button-container">
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': tab.isBlinking}">{{ tab.buttonText }}</button>
+                  <div class="build-with-ai-button-container flex justify-between">
+                    <button type="submit" class="flex-grow mr-2 justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': tab.isBlinking}" style="width: 90%;">{{ tab.buttonText }}</button>
+                    <button ng-click="buildAll()" class="justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" style="width: 10%;">▶️</button>
                   </div>
                 </div>
                 <div ng-show="tab.activeTemplateType === 'Extract'">
