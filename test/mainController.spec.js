@@ -242,48 +242,49 @@ describe('MainController', function() {
         });
         });
 
-    describe('importJsonData function', function() {
-        it('should correctly import JSON data into $scope', function() {
-            // Mock window prompt to return a valid JSON string
-            spyOn($window, 'prompt').and.returnValue(JSON.stringify({
-                inputTabs: [
-                    {
-                        id: 'tab2',
-                        title: 'Input 2',
-                        formData: {
-                            aiInput: 'New AI Input',
-                            mustHaves: 'New Must Haves',
-                            supportingText: 'New Supporting Text'
-                        },
-                        selectedLLM: { model: 'gpt-4' }
-                    }
-                ]
-            }));
+        describe('importJsonData function', function() {
+            it('should correctly import JSON data into $scope', function() {
+                // Mock window prompt to return a valid JSON string
+                spyOn($window, 'prompt').and.returnValue(JSON.stringify({
+                    inputTabs: [
+                        {
+                            id: 'tab2',
+                            title: 'Input 2',
+                            formData: {
+                                aiInput: 'New AI Input',
+                                mustHaves: 'New Must Haves',
+                                supportingText: 'New Supporting Text'
+                            },
+                            selectedLLM: { model: 'gpt-4' }
+                        }
+                    ]
+                }));
 
-            // Call the importJsonData function
-            $scope.importJsonData();
+                // Call the importJsonData function
+                $scope.importJsonData();
 
-            // Check if the jsonData and inputTabs on $scope are updated correctly
-            expect($scope.jsonData.inputTabs.length).toEqual(1);
-            expect($scope.jsonData.inputTabs[0].title).toEqual('Input 2');
-            expect($scope.jsonData.inputTabs[0].formData.aiInput).toEqual('New AI Input');
-            expect($scope.inputTabs[0].selectedLLM.model).toEqual('gpt-4');
+                // Check if the jsonData and inputTabs on $scope are updated correctly
+                expect($scope.jsonData.inputTabs.length).toEqual(1);
+                expect($scope.jsonData.inputTabs[0].title).toEqual('Input 2');
+                expect($scope.jsonData.inputTabs[0].formData.aiInput).toEqual('New AI Input');
+                expect($scope.inputTabs[0].selectedLLM.model).toEqual('gpt-4');
+            });
+
+            it('should handle invalid JSON data gracefully', function() {
+                // Mock window prompt to return an invalid JSON string
+                spyOn($window, 'prompt').and.returnValue('invalid json');
+
+                // Setup a spy to catch console errors
+                spyOn(console, 'error');
+
+                // Call the importJsonData function
+                $scope.importJsonData();
+
+                // Check if an error was logged to the console
+                expect(console.error).toHaveBeenCalled();
+                expect($scope.jsonData).toEqual({}); // jsonData should remain unchanged
+            });
         });
 
-        it('should handle invalid JSON data gracefully', function() {
-            // Mock window prompt to return an invalid JSON string
-            spyOn($window, 'prompt').and.returnValue('invalid json');
-
-            // Setup a spy to catch console errors
-            spyOn(console, 'error');
-
-            // Call the importJsonData function
-            $scope.importJsonData();
-
-            // Check if an error was logged to the console
-            expect(console.error).toHaveBeenCalled();
-            expect($scope.jsonData).toEqual({}); // jsonData should remain unchanged
-        });
-    });
     });
 });
