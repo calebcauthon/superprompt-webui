@@ -11,13 +11,27 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
 
     api.getSavedSetups().then(setups => $scope.savedSetups = setups);
 
+    $scope.llms = [
+        { model: 'claude-3-opus-20240229', display: 'Claude Opus' },
+        { model: 'claude-3-sonnet-20240229', display: 'Claude Sonnet' },
+        { model: 'claude-3-haiku-20240307', display: 'Claude Haiku' },
+        { model: 'gpt-3.5-turbo-0125', display: 'GPT-3.5' },
+        { model: 'gpt-3.5-turbo-16k-0613', display: 'GPT-3.5-16k' },
+        { model: 'gpt-4o', display: 'GPT-4o' },
+        { model: 'gpt-4', display: 'GPT-4' },
+        { model: 'gpt-4-turbo', display: 'GPT-4-Turbo' }
+    ];
+
     $scope.inputTabs = [
-        { ...utils.tabInfoTemplate, id: 'single', title: 'Input', formData: {} }
+        { ...utils.tabInfoTemplate, id: 'single', title: 'Input', formData: {}, selectedLLM: $scope.llms[5] }
     ];
 
     $scope.templateTypes = ['Create', 'Extract', 'Document'];
 
+
+    $scope.selectedLLM = 'GPT-3';
     // HTML Helpers
+    
     $scope.selectTemplateType = function(tab, thing) {
         tab.activeTemplateType = thing;
         console.log(tab.activeTemplateType);
@@ -68,8 +82,8 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
 
     $scope.submitForm = function(tab) {
         utils.startBlinking(tab);
-        console.log('scope input tabes', $scope.inputTabs);
         const data = {
+            selected_llm: tab.selectedLLM.model,
             template_type: tab.activeTemplateType,
             description_input: tab.formData.aiInput,
             must_haves_input: tab.formData.mustHaves,

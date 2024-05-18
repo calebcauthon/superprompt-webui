@@ -115,7 +115,7 @@ describe('MainController', function() {
                 $scope.addInputTab();
             });
         });
-
+ 
         describe('$scope.activateTab', function() {
             it('should set the active tab', function() {
                 $scope.activateTab('tab1');
@@ -156,7 +156,7 @@ describe('MainController', function() {
             });
 
             it('should handle form submission and manage tab states', function() {
-                var mockTab = { formData: { aiInput: '', mustHaves: '', supportingText: '' } };
+                var mockTab = { formData: { aiInput: '', mustHaves: '', supportingText: '' }, selectedLLM: { model: 'claude-3-haiku-20240307' } };
                 $scope.inputTabs = [mockTab];
                 $scope.submitForm(mockTab);
             });
@@ -169,7 +169,8 @@ describe('MainController', function() {
                         aiInput: 'Test AI Input',
                         mustHaves: 'Test Must Haves',
                         supportingText: 'Test Supporting Text'
-                    }
+                    },
+                    selectedLLM: { model: 'claude-3-haiku-20240307' }
                 };
                 $scope.inputTabs = [mockTab];
 
@@ -192,6 +193,7 @@ describe('MainController', function() {
         describe('$scope.submitForm with aiInput included', function() {
             it('should include aiInput in the data sent to /build', function() {
                 var mockTab = {
+                    selectedLLM: { model: 'claude-3-haiku-20240307' },
                     id: 'tab1',
                     title: 'Input 1',
                     formData: {

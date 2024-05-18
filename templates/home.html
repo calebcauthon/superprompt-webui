@@ -63,7 +63,7 @@
     <script src="static/mainControllerUtils.js"></script>
 </head>
 <body ng-controller="MainController">
-    <div class="max-w-xl mx-auto p-5">
+    <div class="max-w-3xl mx-auto p-5">
         <div class="flex border-b">
             <div class="tab" ng-repeat="tab in inputTabs" ng-class="{'active-tab': activeTab === tab.id}" ng-click="activateTab(tab.id)" ng-bind="tab.title"></div>
             <div class="tab" ng-class="{'active-tab': activeTab === 'jsonTab'}" ng-click="activateTab('jsonTab')">JSON</div>
@@ -76,11 +76,11 @@
                     <label for="tabTitle{{tab.id}}" class="block text-sm font-medium text-gray-700">Title</label>
                     <input type="text" id="tabTitle{{tab.id}}" name="tabTitle" ng-model="tab.title" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-                    <div class="bg-white p-4 rounded-lg shadow-lg">
-                        <ul class="flex border border-gray-300 rounded-lg overflow-hidden">
-                            <li ng-repeat="thing in templateTypes" class="tab flex-1 text-center p-2 cursor-pointer" ng-click="selectTemplateType(tab, thing)" ng-class="{'active-template-type bg-indigo-600 text-white': tab.activeTemplateType == thing}" ng-bind="thing"></li>
-                        </ul>
-                    </div>
+                <div class="bg-white p-4 rounded-lg shadow-lg">
+                    <ul class="flex border border-gray-300 rounded-lg overflow-hidden">
+                        <li ng-repeat="thing in templateTypes" class="tab flex-1 text-center p-2 cursor-pointer" ng-click="selectTemplateType(tab, thing)" ng-class="{'active-template-type bg-indigo-600 text-white': tab.activeTemplateType == thing}" ng-bind="thing"></li>
+                    </ul>
+                </div>
                 <div ng-show="tab.activeTemplateType === 'Create'">
                   <div>
                       <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Type in what you want AI to create</label>
@@ -94,6 +94,13 @@
                       <label for="supportingText{{tab.id}}" class="block text-sm font-medium text-gray-700">Copy and paste supporting text</label>
                       <textarea id="supportingText{{tab.id}}" name="supportingText" ng-model="tab.formData.supportingText" rows="4" placeholder="E.g., Background information or context related to the request" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                   </div>
+                  
+                  <div class="mt-4">
+                      <label for="llmSelect{{tab.id}}" class="block text-sm font-medium text-gray-700">Select LLM:</label>
+                      <select id="llmSelect{{tab.id}}" ng-model="tab.selectedLLM" ng-options="llm.display for llm in llms" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                      </select>
+                  </div>
+
                   <div class="build-with-ai-button-container">
                     <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" ng-class="{'blink': tab.isBlinking}">{{ tab.buttonText }}</button>
                   </div>
