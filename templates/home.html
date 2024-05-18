@@ -124,7 +124,7 @@
             </form>
             <div ng-if="tab.resultsData" class="results-display">
                 <p style="font-family: 'Arial', sans-serif; font-size: 1.2em; padding: 10px; border-radius: 8px;">
-                    <strong>Final Output 📄:</strong>
+                    <strong class="cursor-pointer" ng-click="copyOutput(tab)">Final Output 📋:</strong>
                     <pre ng-bind-html="tab.resultsData.result"></pre>
                 </p>
                 <br />

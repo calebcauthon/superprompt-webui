@@ -29,6 +29,39 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
     $scope.templateTypes = ['Create', 'Extract', 'Document'];
 
     // HTML Helpers
+    $scope.showCopyAlert = function(textContent) {
+        const copyAlert = document.createElement('div');
+        copyAlert.textContent = textContent;
+        copyAlert.style.position = 'absolute';
+        copyAlert.style.bottom = '20px';
+        copyAlert.style.right = '20px';
+        copyAlert.style.padding = '10px';
+        copyAlert.style.background = 'lightgreen';
+        copyAlert.style.borderRadius = '5px';
+        copyAlert.style.zIndex = '1000';
+        document.body.appendChild(copyAlert);
+        setTimeout(() => {
+            copyAlert.style.transition = 'opacity 0.5s';
+            copyAlert.style.opacity = '0';
+            setTimeout(() => document.body.removeChild(copyAlert), 500);
+        }, 2000);
+    };
+
+    $scope.copyOutput = function(tab) {
+        if (tab && tab.resultsData && tab.resultsData.result) {
+            const textToCopy = tab.resultsData.result;
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            $scope.showCopyAlert('Output copied to clipboard!');
+        } else {
+            alert('No output available to copy.');
+        }
+    };
+
     $scope.buildAll = function() {
         $scope.inputTabs.forEach(tab => {
             $scope.submitForm(tab);

@@ -304,5 +304,25 @@ describe('MainController', function() {
                 expect($scope.submitForm).toHaveBeenCalledWith($scope.inputTabs[1]);
             });
         });
+
+        describe('$scope.copyOutput function', function() {
+            it('should run without errors', function() {
+                var $scope = $rootScope.$new();
+                var controller = $controller('MainController', { $scope: $scope });
+                $scope.inputTabs = [{ id: 'tab1', title: 'Tab 1', formData: {}, selectedLLM: { model: 'gpt-4' }, resultsData: { result: 'Test result' } }];
+
+                spyOn(document, 'createElement').and.callThrough();
+                spyOn(document.body, 'appendChild').and.callThrough();
+                spyOn(document.body, 'removeChild').and.callThrough();
+                spyOn(document, 'execCommand').and.returnValue(true);
+
+                $scope.copyOutput($scope.inputTabs[0]);
+
+                expect(document.createElement).toHaveBeenCalledWith('textarea');
+                expect(document.body.appendChild).toHaveBeenCalled();
+                expect(document.execCommand).toHaveBeenCalledWith('copy');
+                expect(document.body.removeChild).toHaveBeenCalled();
+            });
+        });
     });
 });
