@@ -159,7 +159,7 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
             must_haves_input: tab.formData.mustHaves,
             supporting_text_input: tab.formData.supportingText,
             other_outputs: $scope.inputTabs.map(t => ({
-                prompt: t.formData.aiInput,
+                prompt: t.resultsData && t.resultsData[0] && t.resultsData[0].all_prompts ? t.resultsData[0].all_prompts[0] : t.formData.aiInput,
                 title: t.title,
                 resultsData: t.resultsData
             })),
