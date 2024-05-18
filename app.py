@@ -1,3 +1,4 @@
+import modal
 import time
 from flask import Flask, render_template, jsonify, request
 from libs.db_models import db, Submission, OutputDocument, SavedSetup
@@ -139,7 +140,8 @@ def create_submission(description, must_haves, supporting_text, user_id, uuid, t
 
 def create_output_document(submission_id, prompt, criteria, other_outputs, supporting_text, template_type, selected_llm):
     def fetch_generated_output():
-        url = "https://calebcauthon--example-get-started-generate-document-dev.modal.run"
+        f = modal.Function.lookup("example-get-started", "generate_document")
+        
         payload = {
             "template_type": template_type,
             "prompt": prompt,
@@ -148,8 +150,7 @@ def create_output_document(submission_id, prompt, criteria, other_outputs, suppo
             "supporting_text": supporting_text,
             "selected_llm": selected_llm
         }
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(url, json=payload, headers=headers)
+        return f.remote(payload)
         if response.status_code == 200:
             return response.json()
         else:
