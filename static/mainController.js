@@ -28,8 +28,6 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
 
     $scope.templateTypes = ['Create', 'Extract', 'Document'];
 
-
-    $scope.selectedLLM = 'GPT-3';
     // HTML Helpers
     $scope.importJsonData = function() {
         const jsonDataInput = $window.prompt("Please paste the JSON data here:");
