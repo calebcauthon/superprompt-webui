@@ -29,6 +29,11 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
     $scope.templateTypes = ['Create', 'Extract', 'Document'];
 
     // HTML Helpers
+    $scope.show = function(result, tab) {
+        tab.resultsData.forEach((r, index) => r.selectedResultIndex = index);
+        result.selectedResultIndex = -1;
+    };
+
     $scope.showCopyAlert = function(textContent) {
         const copyAlert = document.createElement('div');
         copyAlert.textContent = textContent;

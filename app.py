@@ -150,11 +150,8 @@ def create_output_document(submission_id, prompt, criteria, other_outputs, suppo
             "supporting_text": supporting_text,
             "selected_llm": selected_llm
         }
+
         return f.remote(payload)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return "Failed to fetch generated output"
 
     generated_output = fetch_generated_output()
     output_document = OutputDocument(

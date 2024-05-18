@@ -116,33 +116,33 @@
                   </div>
                 </div>
                 <div ng-show="tab.activeTemplateType === 'Document'">
-                  <div>
-                      <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Paste in any information you want to use later</label>
-                      <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput" placeholder="E.g., A short story about space exploration" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
-                  </div>
+                    <div>
+                        <label for="aiInput{{tab.id}}" class="block text-sm font-medium text-gray-700">Paste in any information you want to
+                            use later</label>
+                        <textarea id="aiInput{{tab.id}}" name="aiInput" ng-model="tab.formData.aiInput"
+                            placeholder="E.g., A short story about space exploration"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            rows="4"></textarea>
+                    </div>
                 </div>
             </form>
+            <div class="flex space-x-2 mt-4">
+                <button ng-repeat="result in tab.resultsData track by $index" type="button" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" ng-click="show(result, tab)">
+                    <span>Output #{{$index + 1}}</span>
+                </button>
+            </div>
             <div ng-if="tab.resultsData" class="results-display">
-                <p style="font-family: 'Arial', sans-serif; font-size: 1.2em; padding: 10px; border-radius: 8px;">
-                    <strong class="cursor-pointer" ng-click="copyOutput(tab)">Final Output 📋:</strong>
-                    <pre ng-bind-html="tab.resultsData.result"></pre>
-                </p>
-                <br />
-                <p style="font-family: 'Arial', sans-serif; font-size: 1.2em;">
-                    <strong>Iterations:</strong> {{ tab.resultsData.iterations }} 🔄
-                </p>
-                <div>
-                    <strong>Prompts Used:</strong>
-                    <ul style="font-family: 'Arial', sans-serif; font-size: 1.2em; list-style-type: circle; padding-left: 20px;">
-                        <li ng-repeat="prompt in tab.resultsData.all_prompts track by $index">{{ prompt }}</li>
-                    </ul>
-                </div>
-
-                <div>
-                    <strong>Attributes:</strong>
-                    <ul style="font-family: 'Arial', sans-serif; font-size: 1.2em; list-style-type: circle; padding-left: 20px;">
-                        <li ng-repeat="(attr, value) in tab.resultsData.info track by $index">{{ attr }}: {{ value }}</li>
-                    </ul>
+                <div ng-repeat="this_result in tab.resultsData | orderBy:'selectedResultIndex'">
+                    <div>
+                        <strong>Prompts Used:</strong>
+                        <ul style="font-family: 'Arial', sans-serif; font-size: 1.2em; list-style-type: circle; padding-left: 20px;">
+                            <li ng-repeat="prompt in this_result.all_prompts track by $index">{{ prompt }}</li>
+                        </ul>
+                    </div>
+                    <p style="font-family: 'Arial', sans-serif; font-size: 1.2em; padding: 10px; border-radius: 8px;">
+                        <strong class="cursor-pointer" ng-click="copyOutput(tab)">Final Output 📋 </strong>
+                        <pre ng-bind-html="this_result.result"></pre>
+                    </p>
                 </div>
             </div>
 
