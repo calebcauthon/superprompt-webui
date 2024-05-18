@@ -31,7 +31,19 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
 
     $scope.selectedLLM = 'GPT-3';
     // HTML Helpers
-    
+    $scope.importJsonData = function() {
+        const jsonDataInput = $window.prompt("Please paste the JSON data here:");
+        try {
+            const jsonData = JSON.parse(jsonDataInput);
+            $scope.jsonData = jsonData;
+            $scope.inputTabs = jsonData.inputTabs; // Load the JSON data directly into the tabs
+            console.log('JSON data loaded into tabs successfully');
+        } catch (error) {
+            console.error('Invalid JSON data', error);
+            alert('Failed to parse JSON. Please ensure it is correctly formatted.');
+        }
+    };
+
     $scope.selectTemplateType = function(tab, thing) {
         tab.activeTemplateType = thing;
         console.log(tab.activeTemplateType);
