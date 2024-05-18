@@ -58,9 +58,13 @@ app.controller('MainController', function($scope, $http, $timeout, $window, $int
         utils.refreshJson($scope);
 
         $scope.inputTabs.forEach(tab => {
-            const matchingLLM = $scope.llms.find(llm => llm.display === tab.selectedLLM.display);
-            if (matchingLLM) {
-                tab.selectedLLM = matchingLLM;
+            if (tab.selectedLLM) {
+                const matchingLLM = $scope.llms.find(llm => llm.display === tab.selectedLLM.display);
+                if (matchingLLM) {
+                    tab.selectedLLM = matchingLLM;
+                }
+            } else {
+                tab.selectedLLM = $scope.llms[0]; // Set default to the first LLM in the list if none is selected
             }
         });
     };
