@@ -128,6 +128,13 @@ app.factory('UtilsService', function($interval, api) {
 
 
     function saveJsonDataToDB($scope) {
+        const newHash = JSON.stringify($scope.jsonData);
+        if ($scope.lastJsonHash == newHash) {
+            return;
+        }
+
+        $scope.lastJsonHash = newHash;
+
         api.saveSetup($scope.jsonData)
         .then(function(response) {
             const setup_id = response.data.setup_id;
