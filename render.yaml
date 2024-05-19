@@ -9,6 +9,15 @@ databases:
   - source: 0.0.0.0/0
     description: everywhere
   postgresMajorVersion: "16"
+- name: webui-database-dev
+  databaseName: webui_database
+  user: webui_database_user
+  plan: free
+  region: oregon
+  ipAllowList:
+  - source: 0.0.0.0/0
+    description: everywhere
+  postgresMajorVersion: "16"
 services:
 - type: web
   name: superprompt-webui
@@ -18,4 +27,13 @@ services:
   region: oregon
   buildCommand: pip install -r requirements.txt
   startCommand: gunicorn app:app
+- type: web
+  name: superprompt-webui-dev
+  runtime: python
+  repo: https://github.com/calebcauthon/superprompt-webui
+  plan: starter
+  region: oregon
+  buildCommand: pip install -r requirements.txt
+  startCommand: gunicorn app:app
+  branch: dev
 version: "1"
