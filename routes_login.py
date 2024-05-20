@@ -48,3 +48,19 @@ def login_post():
 def logout():
     logout_user()
     return redirect(url_for('login_routes.login'))
+
+@login_routes.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    username = data['username']
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({"error": "Username already exists"}), 409
+
+    new_user = User(username=username)
+    new_user.set_password("password")
+    db.session.add(new_user)
+    db.session.commit()
+
+    login_user(new_user)
+    return jsonify({"message": "User registered and logged in successfully, with a password of 'password'"}), 201
