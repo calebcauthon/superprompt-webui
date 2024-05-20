@@ -91,8 +91,8 @@ def save_setup():
 @login_required
 def view_all():
     users = User.query.filter_by(id=current_user.id).all()
-    submissions = Submission.query.all()
-    output_documents = OutputDocument.query.all()
+    submissions = Submission.query.filter_by(user_id=current_user.id).all()
+    output_documents = OutputDocument.query.join(Submission, OutputDocument.submission_id == Submission.id).filter(Submission.user_id == current_user.id).all()
     
     users_table = "<table border='1'><tr><th>ID</th><th>Username</th><th>Email</th><th>Password Hash</th><th>Is Active</th><th>Created At</th><th>Updated At</th></tr>"
     for user in users:
@@ -117,10 +117,10 @@ def view_all():
 
     return f"<h1>Users</h1>{users_table}<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}<h1>Saved Setups</h1>{saved_setups_table}"
 
-
 @app.route('/output/<uuid>')
+@login_required
 def output_document(uuid):
-    submission = Submission.query.filter_by(uuid=uuid).first()
+    submission = Submission.query.filter_by(uuid=uuid, user_id=current_user.id).first()
     if submission:
         output_document = OutputDocument.query.filter_by(submission_id=submission.id).first()
         if output_document:
@@ -136,6 +136,7 @@ def build():
     data = request.json
     description, must_haves, supporting_text, user_id, other_outputs, template_type, selected_llm = extract_data(data)
     uuid = generate_uuid(description, must_haves, supporting_text, user_id)
+    user_id = current_user.id
     submission = create_submission(description, must_haves, supporting_text, user_id, uuid, template_type)
     create_output_document(submission.id, description, must_haves, other_outputs, supporting_text, template_type, selected_llm)
     return jsonify({"uuid": uuid}), 200
