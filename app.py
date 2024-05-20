@@ -8,13 +8,15 @@ import hashlib
 import requests
 import json
 import os
+from routes_login import login_routes
 
 app = Flask(__name__)
-app.secret_key = 'test'
+app.register_blueprint(login_routes)
+app.secret_key = os.getenv('FLASK_APP_SECRET_KEY', 'test')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'login_routes.login'
 
 # User loader function
 @login_manager.user_loader
@@ -35,50 +37,6 @@ app.jinja_env.variable_end_string = ']]'
 @login_required
 def home():
     return render_template('home.html')
-
-@app.route('/login', methods=['GET'])
-def login():
-    return render_template('login.html')
-
-@app.route('/profile')
-@login_required
-def profile():
-    return render_template('profile.html', user=current_user)
-
-@app.route('/save_profile', methods=['POST'])
-@login_required
-def save_profile():
-    user_data = request.json
-    user = current_user
-    if 'username' in user_data:
-        user.username = user_data['username']
-    if 'email' in user_data:
-        user.email = user_data['email']
-    if 'password' in user_data:
-        user.set_password(user_data['password'])
-    db.session.commit()
-    return jsonify({"message": "Profile updated successfully"}), 200
-
-
-@app.route('/login', methods=['POST'])
-def login_post():
-    data = request.get_json()
-    username = data['username']
-    password = data['password']
-    user = User.query.filter_by(username=username).first()
-    if user is None or not user.check_password(password):
-        response = jsonify({"error": "Invalid username or password"})
-        response.status_code = 401
-        return response
-    login_user(user)
-    return jsonify({"message": "Logged in successfully"}), 200
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
-
 
 @app.route('/savedsetup/<int:setup_id>', methods=['DELETE'])
 def delete_saved_setup(setup_id):
