@@ -87,10 +87,6 @@ def save_setup():
 
     return jsonify({"message": "Setup saved successfully", "setup_id": new_setup.id}), 201
 
-@app.route('/results/<uuid>')
-def results(uuid):
-    return render_template('results.html', uuid=uuid)
-
 @app.route('/view-all')
 @login_required
 def view_all():
