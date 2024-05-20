@@ -37,17 +37,23 @@ def home():
     return render_template('home.html')
 
 @app.route('/savedsetup/<int:setup_id>', methods=['DELETE'])
+@login_required
 def delete_saved_setup(setup_id):
     setup = SavedSetup.query.get(setup_id)
     if setup:
-        db.session.delete(setup)
-        db.session.commit()
-        return jsonify({"message": "Setup deleted successfully"}), 200
+        if setup.user_id == current_user.id:
+            db.session.delete(setup)
+            db.session.commit()
+            return jsonify({"message": "Setup deleted successfully"}), 200
+        else:
+            return jsonify({"error": "Unauthorized to delete this setup"}), 403
     else:
         return jsonify({"error": "Setup not found"}), 404
+
 @app.route('/getSavedSetups')
+@login_required
 def get_saved_setups():
-    setups = SavedSetup.query.all()
+    setups = SavedSetup.query.filter_by(user_id=current_user.id).all()
     setups_data = [{
         'id': setup.id,
         'user_id': setup.user_id,
@@ -58,17 +64,20 @@ def get_saved_setups():
     return jsonify(setups_data)
 
 @app.route('/savesetup', methods=['POST'])
+@login_required
 def save_setup():
     data = request.json
-    user_id = data.get('user_id', 1)  # Default to user ID 1 if not provided
-    name = data.get('name', 'Default Setup Name')  # Default name if not provided
-    id = data.get('setup_data', {}).get('id', None)  # Default id if not provided
+    user_id = current_user.id
+    name = data.get('name', 'Default Setup Name')
+    id = data.get('setup_data', {}).get('id', None)
 
     setup_data = json.dumps(data.get('setup_data'))
     new_setup = SavedSetup(setup_data=setup_data, user_id=user_id, name=name, timestamp=datetime.utcnow(), id=id)
 
     if SavedSetup.query.get(id):
-        db.session.merge(new_setup)
+        existing_setup = SavedSetup.query.get(id)
+        if existing_setup and existing_setup.user_id == current_user.id:
+            db.session.merge(new_setup)
     else:
         db.session.add(new_setup)
     db.session.commit()
@@ -76,15 +85,16 @@ def save_setup():
     return jsonify({"message": "Setup saved successfully", "setup_id": new_setup.id}), 201
 
 @app.route('/view-all')
+@login_required
 def view_all():
-    users = User.query.all()
+    users = User.query.filter_by(id=current_user.id).all()
     
     users_table = "<table border='1'><tr><th>ID</th><th>Username</th><th>Email</th><th>Password Hash</th><th>Is Active</th><th>Created At</th><th>Updated At</th></tr>"
     for user in users:
         users_table += f"<tr><td>{user.id}</td><td>{user.username}</td><td>{user.email}</td><td>{user.password_hash}</td><td>{user.is_active}</td><td>{user.created_at}</td><td>{user.updated_at}</td></tr>"
     users_table += "</table>"
     
-    saved_setups = SavedSetup.query.all()
+    saved_setups = SavedSetup.query.filter_by(user_id=current_user.id).all()
     saved_setups_table = "<table border='1'><tr><th>ID</th><th>User ID</th><th>Name</th><th>Setup Data</th><th>Timestamp</th></tr>"
     for setup in saved_setups:
         saved_setups_table += f"<tr><td>{setup.id}</td><td>{setup.user_id}</td><td>{setup.name}</td><td>{setup.setup_data}</td><td>{setup.timestamp}</td></tr>"
@@ -93,6 +103,7 @@ def view_all():
     return f"<h1>Users</h1>{users_table}<h1>Saved Setups</h1>{saved_setups_table}"
 
 @app.route('/build', methods=['POST'])
+@login_required
 def build():
     data = request.json
     description, must_haves, supporting_text, user_id, other_outputs, template_type, selected_llm = extract_data(data)
