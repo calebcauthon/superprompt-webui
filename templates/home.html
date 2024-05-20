@@ -64,6 +64,9 @@
     <script src="static/mainControllerUtils.js"></script>
 </head>
 <body ng-controller="MainController">
+    <div class="absolute top-4 right-4 dropdown">
+        <a href="/profile"><button class="bg-gray-200 rounded-full p-2">me</button></a>
+    </div>
     <div class="max-w-3xl mx-auto p-5">
         <div class="flex border-b">
             <div class="tab" ng-repeat="tab in inputTabs" ng-class="{'active-tab': activeTab === tab.id}" ng-click="activateTab(tab.id)" ng-bind="tab.title"></div>

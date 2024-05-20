@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="loginApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #beddfd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0s ease-in, background-color 1s ease-out;
+        }
+        body.error {
+            background-color: rgb(199, 75, 75);
+            background-image: none;
+        }
+        body.success-bg {
+            background-color: rgb(116, 238, 116);
+        }
+        .login-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+            width: 300px;
+        }
+        .login-container h1 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+        }
+        .login-container button {
+            background: #4f46e5;
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 6px rgb(29 12 72);
+        }
+        .login-container button:hover {
+            background: #4338ca;
+        }
+        .message-success {
+            color: green;
+            animation: fadeOut 2s forwards;
+        }
+        .message-error {
+            color: red;
+            font-size: 1.5rem;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+        .static-message {
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+    </style>
+    <script>
+        angular.module('loginApp', [])
+            .controller('LoginController', function($scope, $http, $timeout, $window) {
+                $scope.login = function() {
+                    $http.post('/login', {username: $scope.username, password: $scope.password})
+                        .then(function(response) {
+                            document.body.classList.add('success-bg');
+                            $scope.message = 'Success, taking you to the homepage';
+                            $scope.error = false;
+                            $timeout(function() {
+                                $window.location.href = '/';
+                            }, 1000);
+                        }, function(error) {
+                            $scope.message = 'BAD LOGIN';
+                            $scope.error = true;
+                            document.body.classList.add('error');
+                            $timeout(function() {
+                                document.body.classList.remove('error');
+                                $scope.message = '';
+                            }, 2000);
+                        });
+                };
+                $scope.closeError = function() {
+                    $scope.message = '';
+                };
+            });
+    </script>
+</head>
+<body ng-controller="LoginController">
+    <form ng-submit="login()" class="login-container">
+        <h1>Login</h1>
+        <input type="text" ng-model="username" placeholder="Username" required>
+        <input type="password" ng-model="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+        <div ng-if="message" class="static-message" ng-class="{'message-success': !error, 'message-error': error}">
+            {{ message }}
+        </div>
+    </form>
+</body>
+</html>

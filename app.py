@@ -1,7 +1,8 @@
 import modal
 import time
-from flask import Flask, render_template, jsonify, request
-from libs.db_models import db, Submission, OutputDocument, SavedSetup
+from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask_login import LoginManager, login_required, UserMixin, login_user, current_user, logout_user
+from libs.db_models import db, Submission, OutputDocument, SavedSetup, User
 from datetime import datetime
 import hashlib
 import requests
@@ -9,6 +10,19 @@ import json
 import os
 
 app = Flask(__name__)
+app.secret_key = 'test'
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+# User loader function
+@login_manager.user_loader
+def load_user(user_id):
+    print(f"in load_user, user is {user_id}")
+    if not user_id:
+        return None
+    return User.query.get(user_id)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///your-database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -18,8 +32,53 @@ app.jinja_env.variable_start_string = '[['
 app.jinja_env.variable_end_string = ']]'
 
 @app.route('/')
+@login_required
 def home():
     return render_template('home.html')
+
+@app.route('/login', methods=['GET'])
+def login():
+    return render_template('login.html')
+
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
+@app.route('/save_profile', methods=['POST'])
+@login_required
+def save_profile():
+    user_data = request.json
+    user = current_user
+    if 'username' in user_data:
+        user.username = user_data['username']
+    if 'email' in user_data:
+        user.email = user_data['email']
+    if 'password' in user_data:
+        user.set_password(user_data['password'])
+    db.session.commit()
+    return jsonify({"message": "Profile updated successfully"}), 200
+
+
+@app.route('/login', methods=['POST'])
+def login_post():
+    data = request.get_json()
+    username = data['username']
+    password = data['password']
+    user = User.query.filter_by(username=username).first()
+    if user is None or not user.check_password(password):
+        response = jsonify({"error": "Invalid username or password"})
+        response.status_code = 401
+        return response
+    login_user(user)
+    return jsonify({"message": "Logged in successfully"}), 200
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
 
 @app.route('/savedsetup/<int:setup_id>', methods=['DELETE'])
 def delete_saved_setup(setup_id):
@@ -69,8 +128,14 @@ def results(uuid):
 
 @app.route('/view-all')
 def view_all():
+    users = User.query.all()
     submissions = Submission.query.all()
     output_documents = OutputDocument.query.all()
+    
+    users_table = "<table border='1'><tr><th>ID</th><th>Username</th><th>Email</th><th>Password Hash</th><th>Is Active</th><th>Created At</th><th>Updated At</th></tr>"
+    for user in users:
+        users_table += f"<tr><td>{user.id}</td><td>{user.username}</td><td>{user.email}</td><td>{user.password_hash}</td><td>{user.is_active}</td><td>{user.created_at}</td><td>{user.updated_at}</td></tr>"
+    users_table += "</table>"
     
     submissions_table = "<table border='1'><tr><th>ID</th><th>Description</th><th>Must Haves</th><th>Supporting Text</th><th>User ID</th><th>Timestamp</th><th>UUID</th></tr>"
     for submission in submissions:
@@ -88,7 +153,7 @@ def view_all():
         saved_setups_table += f"<tr><td>{setup.id}</td><td>{setup.user_id}</td><td>{setup.name}</td><td>{setup.setup_data}</td><td>{setup.timestamp}</td></tr>"
     saved_setups_table += "</table>"
 
-    return f"<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}<h1>Saved Setups</h1>{saved_setups_table}"
+    return f"<h1>Users</h1>{users_table}<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}<h1>Saved Setups</h1>{saved_setups_table}"
 
 
 @app.route('/output/<uuid>')
@@ -167,3 +232,4 @@ def create_output_document(submission_id, prompt, criteria, other_outputs, suppo
 if __name__ == "__main__":
     from flask import Flask
     app.run(debug=True, use_reloader=True)
+
