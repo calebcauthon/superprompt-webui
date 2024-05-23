@@ -75,7 +75,6 @@ def save_setup():
 
     setup_data = json.dumps(data.get('setup_data'))
     new_setup = SavedSetup(setup_data=setup_data, user_id=user_id, name=name, timestamp=datetime.utcnow(), id=id)
-    print(f"incoming id is {id}")
     if SavedSetup.query.get(id):
         existing_setup = SavedSetup.query.get(id)
         if existing_setup and existing_setup.user_id == current_user.id:
