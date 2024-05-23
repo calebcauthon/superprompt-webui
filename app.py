@@ -1,14 +1,30 @@
 import modal
 import time
-from flask import Flask, render_template, jsonify, request
-from libs.db_models import db, Submission, OutputDocument, SavedSetup
+from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask_login import LoginManager, login_required, UserMixin, login_user, current_user, logout_user
+from libs.db_models import db, Submission, OutputDocument, SavedSetup, User
 from datetime import datetime
 import hashlib
 import requests
 import json
 import os
+from routes_login import login_routes
 
 app = Flask(__name__)
+app.register_blueprint(login_routes)
+app.secret_key = os.getenv('FLASK_APP_SECRET_KEY', 'test')
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login_routes.login'
+
+# User loader function
+@login_manager.user_loader
+def load_user(user_id):
+    print(f"in load_user, user is {user_id}")
+    if not user_id:
+        return None
+    return User.query.get(user_id)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///your-database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -18,22 +34,28 @@ app.jinja_env.variable_start_string = '[['
 app.jinja_env.variable_end_string = ']]'
 
 @app.route('/')
+@login_required
 def home():
     return render_template('home.html')
 
 @app.route('/savedsetup/<int:setup_id>', methods=['DELETE'])
+@login_required
 def delete_saved_setup(setup_id):
     setup = SavedSetup.query.get(setup_id)
     if setup:
-        db.session.delete(setup)
-        db.session.commit()
-        return jsonify({"message": "Setup deleted successfully"}), 200
+        if setup.user_id == current_user.id:
+            db.session.delete(setup)
+            db.session.commit()
+            return jsonify({"message": "Setup deleted successfully"}), 200
+        else:
+            return jsonify({"error": "Unauthorized to delete this setup"}), 403
     else:
         return jsonify({"error": "Setup not found"}), 404
 
 @app.route('/getSavedSetups')
+@login_required
 def get_saved_setups():
-    setups = SavedSetup.query.all()
+    setups = SavedSetup.query.filter_by(user_id=current_user.id).all()
     setups_data = [{
         'id': setup.id,
         'user_id': setup.user_id,
@@ -44,18 +66,19 @@ def get_saved_setups():
     return jsonify(setups_data)
 
 @app.route('/savesetup', methods=['POST'])
+@login_required
 def save_setup():
     data = request.json
-    user_id = data.get('user_id', 1)  # Default to user ID 1 if not provided
-    name = data.get('name', 'Default Setup Name')  # Default name if not provided
-    id = data.get('setup_data', {}).get('id', None)  # Default id if not provided
+    user_id = current_user.id
+    id = data.get('setup_data', {}).get('id', None)
+    name = data.get('setup_data', {}).get('name', 'Default Setup Name')
 
     setup_data = json.dumps(data.get('setup_data'))
     new_setup = SavedSetup(setup_data=setup_data, user_id=user_id, name=name, timestamp=datetime.utcnow(), id=id)
-    print(f"incoming id is {id}")
     if SavedSetup.query.get(id):
-        print(f"id exists in the database")
-        db.session.merge(new_setup)
+        existing_setup = SavedSetup.query.get(id)
+        if existing_setup and existing_setup.user_id == current_user.id:
+            db.session.merge(new_setup)
     else:
         print(f"id does not exist in the database")
         db.session.add(new_setup)
@@ -63,14 +86,17 @@ def save_setup():
 
     return jsonify({"message": "Setup saved successfully", "setup_id": new_setup.id}), 201
 
-@app.route('/results/<uuid>')
-def results(uuid):
-    return render_template('results.html', uuid=uuid)
-
 @app.route('/view-all')
+@login_required
 def view_all():
-    submissions = Submission.query.all()
-    output_documents = OutputDocument.query.all()
+    users = User.query.filter_by(id=current_user.id).all()
+    submissions = Submission.query.filter_by(user_id=current_user.id).all()
+    output_documents = OutputDocument.query.join(Submission, OutputDocument.submission_id == Submission.id).filter(Submission.user_id == current_user.id).all()
+    
+    users_table = "<table border='1'><tr><th>ID</th><th>Username</th><th>Email</th><th>Password Hash</th><th>Is Active</th><th>Created At</th><th>Updated At</th></tr>"
+    for user in users:
+        users_table += f"<tr><td>{user.id}</td><td>{user.username}</td><td>{user.email}</td><td>{user.password_hash}</td><td>{user.is_active}</td><td>{user.created_at}</td><td>{user.updated_at}</td></tr>"
+    users_table += "</table>"
     
     submissions_table = "<table border='1'><tr><th>ID</th><th>Description</th><th>Must Haves</th><th>Supporting Text</th><th>User ID</th><th>Timestamp</th><th>UUID</th></tr>"
     for submission in submissions:
@@ -82,18 +108,18 @@ def view_all():
         output_documents_table += f"<tr><td>{document.id}</td><td>{document.submission_id}</td><td>{document.output}</td></tr>"
     output_documents_table += "</table>"
 
-    saved_setups = SavedSetup.query.all()
+    saved_setups = SavedSetup.query.filter_by(user_id=current_user.id).all()
     saved_setups_table = "<table border='1'><tr><th>ID</th><th>User ID</th><th>Name</th><th>Setup Data</th><th>Timestamp</th></tr>"
     for setup in saved_setups:
         saved_setups_table += f"<tr><td>{setup.id}</td><td>{setup.user_id}</td><td>{setup.name}</td><td>{setup.setup_data}</td><td>{setup.timestamp}</td></tr>"
     saved_setups_table += "</table>"
 
-    return f"<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}<h1>Saved Setups</h1>{saved_setups_table}"
-
+    return f"<h1>Users</h1>{users_table}<h1>Submissions</h1>{submissions_table}<h1>Output Documents</h1>{output_documents_table}<h1>Saved Setups</h1>{saved_setups_table}"
 
 @app.route('/output/<uuid>')
+@login_required
 def output_document(uuid):
-    submission = Submission.query.filter_by(uuid=uuid).first()
+    submission = Submission.query.filter_by(uuid=uuid, user_id=current_user.id).first()
     if submission:
         output_document = OutputDocument.query.filter_by(submission_id=submission.id).first()
         if output_document:
@@ -104,10 +130,12 @@ def output_document(uuid):
     return "Output document not found", 404
 
 @app.route('/build', methods=['POST'])
+@login_required
 def build():
     data = request.json
     description, must_haves, supporting_text, user_id, other_outputs, template_type, selected_llm = extract_data(data)
     uuid = generate_uuid(description, must_haves, supporting_text, user_id)
+    user_id = current_user.id
     submission = create_submission(description, must_haves, supporting_text, user_id, uuid, template_type)
     create_output_document(submission.id, description, must_haves, other_outputs, supporting_text, template_type, selected_llm)
     return jsonify({"uuid": uuid}), 200
@@ -167,3 +195,4 @@ def create_output_document(submission_id, prompt, criteria, other_outputs, suppo
 if __name__ == "__main__":
     from flask import Flask
     app.run(debug=True, use_reloader=True)
+

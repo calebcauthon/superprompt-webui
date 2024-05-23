@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="profileApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    input {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    </style>
+    <script>
+        angular.module('profileApp', [])
+            .controller('ProfileController', function($scope, $http) {
+                $scope.user = {
+                    username: '[[ user.username ]]',
+                    email: '[[ user.email ]]'
+                };
+                $scope.userClone = angular.copy($scope.user);
+                $scope.editing = {
+                    username: false,
+                    email: false,
+                    password: false
+                };
+
+                $scope.saveProfile = function() {
+                    $http.post('/save_profile', $scope.userClone).then(function(response) {
+                        angular.copy($scope.userClone, $scope.user);
+                        $scope.editing.username = false;
+                        $scope.editing.email = false;
+                        $scope.editing.password = false;
+                    });
+                };
+
+                $scope.cancelEdit = function(field) {
+                    $scope.userClone[field] = $scope.user[field];
+                    $scope.editing[field] = false;
+                };
+            });
+    </script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen" ng-controller="ProfileController">
+    <div class="bg-white shadow-md rounded-lg p-8 w-96">
+        <h1 class="text-2xl font-bold text-center mb-6">Profile</h1>
+        <div class="flex items-center justify-center mb-6">
+            <div class="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center text-xl font-bold">
+                me
+            </div>
+        </div>
+        <div class="mb-4 flex items-center">
+            <span class="text-orange-500 font-bold mr-2">username</span>
+            <p class="text-gray-700 flex-1" ng-hide="editing.username">{{ user.username }}</p>
+            <input ng-show="editing.username" ng-model="userClone.username" class="text-gray-700 flex-1"/>
+            <span ng-hide="editing.username" ng-click="editing.username = true" class="text-gray-500 cursor-pointer">✏️</span>
+            <span ng-show="editing.username" ng-click="saveProfile()" class="text-gray-500 cursor-pointer">💾</span>
+            <span ng-show="editing.username" ng-click="cancelEdit('username')" class="text-gray-500 cursor-pointer">❌</span>
+        </div>
+        <div class="mb-6 flex items-center">
+            <span class="text-orange-500 font-bold mr-2">email</span>
+            <p class="text-gray-700 flex-1" ng-hide="editing.email">{{ user.email }}</p>
+            <input ng-show="editing.email" ng-model="userClone.email" class="text-gray-700 flex-1"/>
+            <span ng-hide="editing.email" ng-click="editing.email = true" class="text-gray-500 cursor-pointer">✏️</span>
+            <span ng-show="editing.email" ng-click="saveProfile()" class="text-gray-500 cursor-pointer">💾</span>
+            <span ng-show="editing.email" ng-click="cancelEdit('email')" class="text-gray-500 cursor-pointer">❌</span>
+        </div>
+        <div class="mb-6 flex items-center">
+            <span class="text-orange-500 font-bold mr-2">password</span>
+            <p class="text-gray-700 flex-1" ng-hide="editing.password">********</p>
+            <input ng-show="editing.password" ng-model="userClone.password" class="text-gray-700 flex-1"/>
+            <span ng-hide="editing.password" ng-click="editing.password = true" class="text-gray-500 cursor-pointer">✏️</span>
+            <span ng-show="editing.password" ng-click="saveProfile()" class="text-gray-500 cursor-pointer">💾</span>
+            <span ng-show="editing.password" ng-click="cancelEdit('password')" class="text-gray-500 cursor-pointer">❌</span>
+        </div>
+        <a href="/logout" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition duration-200 text-center block">
+            log out
+        </a>
+    </div>
+</body>
+</html>
