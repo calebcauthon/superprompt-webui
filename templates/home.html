@@ -164,7 +164,7 @@
                               </tr>
                           </thead>
                           <tbody class="bg-white divide-y divide-gray-200">
-                              <tr ng-repeat="message in this_result.debug_messages">
+                              <tr ng-repeat="message in this_result.debug_messages track by $index">
                                   <td class="px-6 py-4 text-sm text-gray-900">
                                       <pre>{{ message }}</pre>
                                   </td>
