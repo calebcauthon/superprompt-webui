@@ -70,8 +70,8 @@ def get_saved_setups():
 def save_setup():
     data = request.json
     user_id = current_user.id
-    name = data.get('name', 'Default Setup Name')
     id = data.get('setup_data', {}).get('id', None)
+    name = data.get('setup_data', {}).get('name', 'Default Setup Name')
 
     setup_data = json.dumps(data.get('setup_data'))
     new_setup = SavedSetup(setup_data=setup_data, user_id=user_id, name=name, timestamp=datetime.utcnow(), id=id)

@@ -71,6 +71,7 @@
         <div class="flex border-b">
             <div class="tab" ng-repeat="tab in inputTabs" ng-class="{'active-tab': activeTab === tab.id}" ng-click="activateTab(tab.id)" ng-bind="tab.title"></div>
             <div class="tab" ng-class="{'active-tab': activeTab === 'jsonTab'}" ng-click="activateTab('jsonTab')">JSON</div>
+            <div class="tab" ng-class="{'active-tab': activeTab === 'jsonDataAttributesTab'}" ng-click="activateTab('jsonDataAttributesTab')">JSON Data Attributes</div>
             <div class="tab" ng-class="{'active-tab': activeTab === 'historyTab'}" ng-click="activateTab('historyTab')">History</div>
             <div class="tab" ng-click="addInputTab()">+</div>
         </div>
@@ -185,6 +186,13 @@
             </button>
             <h3 class="text-lg font-medium text-gray-700">JSON Data Structure</h3>
             <pre class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-50">{{ jsonData | json }}</pre>
+        </div>
+        <div ng-show="activeTab === 'jsonDataAttributesTab'" class="content-area">
+            <h3 class="text-lg font-medium text-gray-700">JSON Data Attributes</h3>
+            <div class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm bg-gray-50">
+                <label for="nameEdit" class="text-sm font-medium text-gray-700">Edit Name:</label>
+                <input type="text" id="nameEdit" ng-model="jsonData.name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm">
+            </div>
         </div>
         <div ng-show="activeTab === 'historyTab'" class="content-area">
             <h3 class="text-lg font-medium text-gray-700">History</h3>
